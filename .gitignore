@@ -1,0 +1,9 @@
+# Root .gitignore — bảo vệ toàn bộ file .env trong mọi subfolder
+**/.env
+**/.env.local
+**/node_modules/
+
+# Prisma migrations tự sinh (nên commit) — không ignore
+# Chỉ ignore generated client
+backend/node_modules/
+frontend/node_modules/
