@@ -1,0 +1,82 @@
+========================================================================
+                      HOMESTAY DORM SYSTEM CHANGELOG
+========================================================================
+
+------------------------------------------------------------------------
+Version: v0.5.0
+Date: 2026-06-26
+Description: Implement UC12-UC15 Contract Termination & Room Checkout Flow
+------------------------------------------------------------------------
+* UC12: Register Checkout (Đăng ký trả phòng)
+  - Created backend service, controller, validator, and routes for registering checkout.
+  - Implemented schedule date picker for Sale reps to book checkout dates (>= today).
+  - Supported rescheduled dates for checkout while in the 'ChoDoiSoat' state.
+* UC13: Asset Audit (Đối soát tài sản)
+  - Implemented Quản lý asset check interface against the baseline handover report.
+  - Developed condition dropdown and compensation cost recorder for damaged or missing items.
+* UC14: Fee Deductions & Client Agreement (Khấu trừ chi phí & Xác nhận)
+  - Added Accountant panel to enter refund rates, outstanding rent, utility bills, and penalties.
+  - Designed real-time balance calculations with non-negative splits (Refund vs Extra Due).
+  - Added checkbox and confirmation mechanism for Sale/Manager to record customer consent.
+* UC15: Contract Liquidation (Thanh lý hợp đồng)
+  - Developed transaction-wrapped liquidation endpoint to switch contract state to 'DaThanhLy'.
+  - Automatically releases valid residents' beds back to 'Trong' and synchronizes parent room status.
+  - Generates audit history records in the room status change log.
+* Other Improvements
+  - Created a unified contract search endpoint (?search=...) supporting code, customer name, or phone number.
+  - Added a dynamic 4-step wizard checkout page (TraPhong.jsx) with role-based disables.
+
+------------------------------------------------------------------------
+Version: v0.4.0
+Date: 2026-06-25
+Description: Implement UC10 & UC11 First Month Payment & Room Handover
+------------------------------------------------------------------------
+* UC10: First Month Payment (Thanh toán kỳ đầu)
+  - Implemented backend service and endpoint to auto-generate billing cycles and compute invoices.
+  - Created Accountant Dashboard with financial KPIs (Revenue, Outstanding Bills, Paid Rate).
+  - Developed payment confirmation flow allowing Accountant to confirm cash/transfer payments.
+* UC11: Room Handover (Bàn giao phòng)
+  - Developed handover creation enforcing paid first-month invoice pre-conditions.
+  - Created asset audit panel loading default room assets (Giường, Nệm, Tủ, Thẻ từ).
+  - Implemented transaction-based final sign-off: uploads signed sheets to Supabase Storage, activates beds to 'DangThue', and aligns contract start dates.
+
+------------------------------------------------------------------------
+Version: v0.3.0
+Date: 2026-06-24
+Description: Implement UC07-UC09 Deposit Recording, Contracts, & Residency Check
+------------------------------------------------------------------------
+* UC07: Deposit Recording (Ghi nhận đặt cọc)
+  - Implemented Sale voucher upload panel and Manager approval/rejection interface.
+  - Added 24-hour lazy-expiry cleanup to release expired bookings back to 'Trong'.
+* UC08: Lease Contract (Lập hợp đồng thuê)
+  - Developed transaction-wrapped contract activation locking valid members' beds to 'DangThue'.
+  - Added price snapshots and warning comparisons.
+* UC09: Residency Check (Kiểm tra điều kiện cư trú)
+  - Implemented gender policy and identity checking logic (CCCD validations).
+  - Added roommate search panel to easily build group rentals.
+
+------------------------------------------------------------------------
+Version: v0.2.0
+Date: 2026-06-23
+Description: Frontend Setup & Core API Integration (UC01 - UC06)
+------------------------------------------------------------------------
+* Project Bootstrap
+  - Configured Vite + React project with AuthContext and Axios Client (auto-injecting Supabase JWT).
+  - Extracted variables.css, components.css, and layout.css from design mockup.
+* UC01: Secure Login
+  - Integrated Supabase Auth with custom 15-minute lockouts after 5 failed attempts.
+* UC02–06: Rental Request & Booking
+  - Implemented Intake Form (UC04) with phone number duplication checks.
+  - Implemented Appointment Scheduler (UC05) with overlap conflict warnings.
+  - Developed Deposit Creator (UC06) with real-time room/bed search and price calculations.
+
+------------------------------------------------------------------------
+Version: v0.1.0
+Date: 2026-06-22
+Description: Initial Backend Architecture & Database Schema
+------------------------------------------------------------------------
+* Database Schema
+  - Designed and deployed 14 relational PostgreSQL tables on Supabase.
+* Backend Core
+  - Setup Node.js + Express backend using postgres.js client and Zod validators.
+  - Developed core status synchronization algorithms for rooms and beds.
