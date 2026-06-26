@@ -250,5 +250,150 @@ export const hopDongService = {
       ...contract,
       thanh_vien: members
     }
+  },
+
+  /**
+   * Search contracts by code, customer name or phone number.
+   */
+  async search(query, tx) {
+    const client = tx || sql
+    const searchVal = `%${query || ''}%`
+
+    const results = await client`
+      SELECT 
+        hd.id,
+        hd.ma_hop_dong,
+        hd.trang_thai,
+        hd.ngay_bat_dau,
+        p.ma_phong,
+        kh.ho_ten AS ten_khach_hang,
+        kh.so_dien_thoai AS sdt_khach_hang,
+        (SELECT id FROM bien_ban_tra_phong WHERE hop_dong_id = hd.id) AS bien_ban_tra_phong_id,
+        (SELECT trang_thai FROM bien_ban_tra_phong WHERE hop_dong_id = hd.id) AS bien_ban_tra_phong_trang_thai
+      FROM hop_dong hd
+      JOIN phieu_dat_coc pdc ON hd.phieu_dat_coc_id = pdc.id
+      JOIN khach_hang kh ON pdc.khach_hang_id = kh.id
+      JOIN phong p ON hd.phong_id = p.id
+      WHERE hd.ma_hop_dong ILIKE ${searchVal}
+         OR kh.so_dien_thoai ILIKE ${searchVal}
+         OR kh.ho_ten ILIKE ${searchVal}
+      ORDER BY hd.ngay_ky DESC
+      LIMIT 20
+    `
+    return results
+  },
+
+  /**
+   * Liquidate contract and release beds/rooms back to 'Trong' (UC15).
+   * Executed entirely inside a database transaction.
+   * 
+   * @param {string} id - Contract UUID
+   * @param {boolean} taiChinhDaHoanTat - Financial obligation completion confirmation
+   * @param {string} quanLyId - UUID of the Quản lý liquidating the contract
+   * @param {Object} [tx] - Optional postgres.js transaction client
+   * @returns {Promise<Object>} The liquidation result
+   */
+  async thanhLy(id, taiChinhDaHoanTat, quanLyId, tx) {
+    const client = tx || sql
+
+    // 1. Fetch contract
+    const [hopDong] = await client`
+      SELECT id, trang_thai, phong_id
+      FROM hop_dong
+      WHERE id = ${id}
+    `
+    if (!hopDong) {
+      const err = new Error('Không tìm thấy hợp đồng thuê.')
+      err.code = 'NOT_FOUND'
+      err.status = 404
+      throw err
+    }
+
+    if (hopDong.trang_thai === 'DaThanhLy') {
+      const err = new Error('Hợp đồng đã được thanh lý trước đó.')
+      err.code = 'HOP_DONG_DA_THANH_LY'
+      err.status = 409
+      throw err
+    }
+
+    if (hopDong.trang_thai !== 'HieuLuc') {
+      const err = new Error('Hợp đồng không hợp lệ (phải ở trạng thái Hiệu Lực).')
+      err.code = 'HOP_DONG_KHONG_HOP_LE'
+      err.status = 422
+      throw err
+    }
+
+    // 2. Query bien_ban_tra_phong by hop_dong_id
+    const [bbt] = await client`
+      SELECT id, trang_thai, khach_xac_nhan_doi_soat, so_tien_hoan_khach, so_tien_khach_can_tra_them
+      FROM bien_ban_tra_phong
+      WHERE hop_dong_id = ${id}
+    `
+    if (!bbt) {
+      const err = new Error('Không tìm thấy biên bản trả phòng cho hợp đồng này.')
+      err.code = 'NOT_FOUND'
+      err.status = 404
+      throw err
+    }
+
+    // 3. Check client confirmation
+    if (!bbt.khach_xac_nhan_doi_soat) {
+      const err = new Error('Khách hàng chưa xác nhận kết quả đối soát tài sản & chi phí.')
+      err.code = 'KHACH_CHUA_XAC_NHAN_DOI_SOAT'
+      err.status = 422
+      throw err
+    }
+
+    // 4. Check financial obligations
+    const soTienHoan = Number(bbt.so_tien_hoan_khach || 0)
+    const soTienThu = Number(bbt.so_tien_khach_can_tra_them || 0)
+
+    if ((soTienHoan > 0 || soTienThu > 0) && !taiChinhDaHoanTat) {
+      const err = new Error('Chưa hoàn tất nghĩa vụ tài chính liên quan đến cọc hoặc chi phí phát sinh.')
+      err.code = 'CHUA_HOAN_TAT_NGHIA_VU_TAI_CHINH'
+      err.status = 422
+      throw err
+    }
+
+    // 5. Update checkout report & contract statuses
+    await client`
+      UPDATE bien_ban_tra_phong
+      SET 
+        trang_thai = 'DaThanhLy',
+        quan_ly_xac_nhan_id = ${quanLyId}
+      WHERE id = ${bbt.id}
+    `
+
+    await client`
+      UPDATE hop_dong
+      SET trang_thai = 'DaThanhLy'
+      WHERE id = ${id}
+    `
+
+    // 6. Release all beds belonging to valid contract members
+    const members = await client`
+      SELECT giuong_id 
+      FROM thanh_vien_hop_dong 
+      WHERE hop_dong_id = ${id} 
+        AND dat_dieu_kien_cu_tru = true
+    `
+
+    for (const m of members) {
+      if (m.giuong_id) {
+        await phongService.updateTrangThaiGiuong(
+          m.giuong_id,
+          'Trong',
+          'Thanh lý hợp đồng thuê phòng, trả giường về trạng thái trống',
+          quanLyId,
+          client
+        )
+      }
+    }
+
+    return {
+      hop_dong_id: id,
+      trang_thai_hop_dong: 'DaThanhLy',
+      trang_thai_bien_ban: 'DaThanhLy'
+    }
   }
 }

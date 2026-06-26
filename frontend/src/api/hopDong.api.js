@@ -13,3 +13,13 @@ export const kiemTraDieuKien = (phieuDatCocId, danhSachKhach) => {
     danh_sach_khach: danhSachKhach
   })
 }
+
+export const thanhLyHopDong = (id, taiChinhDaHoanTat) => {
+  return axiosClient.patch(`/hop-dong/${id}/thanh-ly`, {
+    tai_chinh_da_hoan_tat: taiChinhDaHoanTat
+  })
+}
+
+export const searchHopDong = (query) => {
+  return axiosClient.get(`/hop-dong?search=${encodeURIComponent(query)}`)
+}

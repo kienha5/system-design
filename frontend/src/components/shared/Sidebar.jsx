@@ -68,6 +68,14 @@ export default function Sidebar() {
                 💰 Ghi nhận đặt cọc
               </Link>
             </li>
+            <li>
+              <Link 
+                to="/dang-ky-tra-phong" 
+                className={isActive('/dang-ky-tra-phong') ? 'active' : ''}
+              >
+                🚪 Đăng ký trả phòng
+              </Link>
+            </li>
           </ul>
         </>
       )}
@@ -116,6 +124,15 @@ export default function Sidebar() {
                 🏠 Bàn giao phòng
               </Link>
             </li>
+            <li>
+              <Link 
+                to="#" 
+                className={location.pathname.startsWith('/tra-phong') ? 'active' : 'disabled'}
+                onClick={(e) => { if (!location.pathname.startsWith('/tra-phong')) e.preventDefault() }}
+              >
+                🚪 Trả phòng & thanh lý
+              </Link>
+            </li>
           </ul>
         </>
       )}
@@ -141,6 +158,15 @@ export default function Sidebar() {
                 onClick={(e) => { if (!location.pathname.startsWith('/thanh-toan-ky-dau')) e.preventDefault() }}
               >
                 💳 Thanh toán kỳ đầu
+              </Link>
+            </li>
+            <li>
+              <Link 
+                to="#" 
+                className={location.pathname.startsWith('/tra-phong') ? 'active' : 'disabled'}
+                onClick={(e) => { if (!location.pathname.startsWith('/tra-phong')) e.preventDefault() }}
+              >
+                🧾 Khấu trừ chi phí
               </Link>
             </li>
           </ul>

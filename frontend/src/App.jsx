@@ -11,6 +11,8 @@ import LapHopDong from './pages/quanly/LapHopDong'
 import DashboardKeToan from './pages/ketoan/DashboardKeToan'
 import ThanhToanKyDau from './pages/ketoan/ThanhToanKyDau'
 import BanGiaoPhong from './pages/quanly/BanGiaoPhong'
+import DangKyTraPhong from './pages/sale/DangKyTraPhong'
+import TraPhong from './pages/quanly/TraPhong'
 
 function ProtectedRoute({ children, allowedRoles }) {
   const { user, loading } = useAuth()
@@ -53,6 +55,9 @@ function AppRoutes() {
       <Route path="/lap-phieu-dat-coc" element={
         <ProtectedRoute allowedRoles={['Sale']}><LapPhieuDatCoc /></ProtectedRoute>
       } />
+      <Route path="/dang-ky-tra-phong" element={
+        <ProtectedRoute allowedRoles={['Sale']}><DangKyTraPhong /></ProtectedRoute>
+      } />
 
       {/* Shared routes (Sale and QuanLy) */}
       <Route path="/ghi-nhan-dat-coc" element={
@@ -76,6 +81,9 @@ function AppRoutes() {
       } />
       <Route path="/thanh-toan-ky-dau/:hopDongId" element={
         <ProtectedRoute allowedRoles={['KeToan', 'kế toán', 'Kế toán']}><ThanhToanKyDau /></ProtectedRoute>
+      } />
+      <Route path="/tra-phong/:bienBanId" element={
+        <ProtectedRoute allowedRoles={['QuanLy', 'quản lý', 'Quản lý', 'KeToan', 'kế toán', 'Kế toán']}><TraPhong /></ProtectedRoute>
       } />
 
       <Route path="/" element={<Navigate to="/dang-nhap" replace />} />
