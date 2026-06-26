@@ -32,19 +32,19 @@ router.post(
 router.get(
   '/nhu-cau-thue',
   authenticate,
-  requireRole('Sale'),
+  requireRole('Sale', 'QuanLy'),
   nhuCauThueController.search
 )
 
 /**
  * @route GET /api/v1/nhu-cau-thue/:id
  * @desc Fetch a single rental request by ID
- * @access Private (Sale only)
+ * @access Private (Sale and QuanLy)
  */
 router.get(
   '/nhu-cau-thue/:id',
   authenticate,
-  requireRole('Sale'),
+  requireRole('Sale', 'QuanLy'),
   validateParams(uuidParamSchema),
   nhuCauThueController.getById
 )

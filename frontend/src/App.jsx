@@ -5,6 +5,9 @@ import DashboardSale from './pages/sale/DashboardSale'
 import TiepNhanYeuCau from './pages/sale/TiepNhanYeuCau'
 import DatLichXemPhong from './pages/sale/DatLichXemPhong'
 import LapPhieuDatCoc from './pages/sale/LapPhieuDatCoc'
+import DashboardQuanLy from './pages/quanly/DashboardQuanLy'
+import GhiNhanDatCoc from './pages/quanly/GhiNhanDatCoc'
+import LapHopDong from './pages/quanly/LapHopDong'
 
 function ProtectedRoute({ children, allowedRoles }) {
   const { user, loading } = useAuth()
@@ -25,6 +28,7 @@ const getDashboardPath = (role) => {
   return `/dashboard-${r}`
 }
 
+// Global layout wrapper for app pages is handled internally in each page (Sidebar + Header + content)
 function AppRoutes() {
   const { user } = useAuth()
   return (
@@ -47,16 +51,20 @@ function AppRoutes() {
         <ProtectedRoute allowedRoles={['Sale']}><LapPhieuDatCoc /></ProtectedRoute>
       } />
 
-      {/* Fallbacks */}
-      <Route path="/dashboard-quan-ly" element={
-        <ProtectedRoute allowedRoles={['QuanLy']}>
-          <div style={{ padding: '40px', textAlign: 'center' }}>
-            <h2>Dashboard Quản Lý</h2>
-            <p>Trang này hiện đang được phát triển.</p>
-            <button className="btn btn-primary" onClick={() => window.location.href='/dang-nhap'}>Quay lại</button>
-          </div>
-        </ProtectedRoute>
+      {/* Shared routes (Sale and QuanLy) */}
+      <Route path="/ghi-nhan-dat-coc" element={
+        <ProtectedRoute allowedRoles={['Sale', 'QuanLy', 'quản lý', 'Quản lý']}><GhiNhanDatCoc /></ProtectedRoute>
       } />
+
+      {/* Manager (QuanLy) routes */}
+      <Route path="/dashboard-quan-ly" element={
+        <ProtectedRoute allowedRoles={['QuanLy', 'quản lý', 'Quản lý']}><DashboardQuanLy /></ProtectedRoute>
+      } />
+      <Route path="/lap-hop-dong" element={
+        <ProtectedRoute allowedRoles={['QuanLy', 'quản lý', 'Quản lý']}><LapHopDong /></ProtectedRoute>
+      } />
+
+      {/* Fallbacks */}
       <Route path="/dashboard-ke-toan" element={
         <ProtectedRoute allowedRoles={['KeToan']}>
           <div style={{ padding: '40px', textAlign: 'center' }}>

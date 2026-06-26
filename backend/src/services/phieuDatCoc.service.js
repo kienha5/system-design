@@ -277,5 +277,298 @@ export const phieuDatCocService = {
       ...newDeposit,
       so_tien_coc: Number(newDeposit.so_tien_coc)
     }
+  },
+
+  /**
+   * List deposit sheets, optionally filtered by status or customer phone number.
+   * Auto-runs lazy expiry cleanup on all pending deposits.
+   * 
+   * @param {Object} filters - Query filters (trang_thai, so_dien_thoai)
+   * @param {Object} [tx] - Optional postgres.js transaction client
+   * @returns {Promise<Array>} List of deposits
+   */
+  async list(filters, tx) {
+    const client = tx || sql
+    const { trang_thai, so_dien_thoai } = filters
+
+    // 1. Run lazy expiry on all pending deposits first to keep data fresh
+    const pendings = await client`
+      SELECT id 
+      FROM phieu_dat_coc 
+      WHERE trang_thai = 'ChoThanhToan'
+    `
+    for (const p of pendings) {
+      await this.checkAndExpireIfNeeded(p.id, client)
+    }
+
+    // 2. Build query conditions
+    const conditions = []
+    if (trang_thai) {
+      conditions.push(sql`pdc.trang_thai = ${trang_thai}`)
+    }
+    if (so_dien_thoai) {
+      conditions.push(sql`kh.so_dien_thoai = ${so_dien_thoai}`)
+    }
+
+    const whereClause = conditions.length > 0
+      ? sql`WHERE ${conditions.reduce((acc, cond) => sql`${acc} AND ${cond}`)}`
+      : sql``
+
+    const results = await client`
+      SELECT 
+        pdc.id,
+        pdc.ma_phieu_coc,
+        pdc.khach_hang_id,
+        pdc.nhu_cau_thue_id,
+        pdc.phong_id,
+        pdc.giuong_id,
+        pdc.so_giuong_thue,
+        pdc.ngay_dat_coc,
+        pdc.han_thanh_toan,
+        pdc.so_tien_coc::float AS so_tien_coc,
+        pdc.phuong_thuc_thanh_toan,
+        pdc.chung_tu_url,
+        pdc.chi_nhanh_id,
+        pdc.sale_id,
+        pdc.nguoi_xac_nhan_id,
+        pdc.trang_thai,
+        kh.ho_ten AS khach_hang_ho_ten,
+        kh.so_dien_thoai AS khach_hang_so_dien_thoai,
+        p.ma_phong,
+        p.loai_phong
+      FROM phieu_dat_coc pdc
+      JOIN khach_hang kh ON pdc.khach_hang_id = kh.id
+      JOIN phong p ON pdc.phong_id = p.id
+      ${whereClause}
+      ORDER BY pdc.ngay_dat_coc DESC
+    `
+    return results
+  },
+
+  /**
+   * Retrieve a single deposit sheet by ID with joined customer and room details.
+   * Auto-runs lazy expiry cleanup.
+   * 
+   * @param {string} id - Deposit sheet UUID
+   * @param {Object} [tx] - Optional postgres.js transaction client
+   * @returns {Promise<Object|null>} The deposit sheet details or null
+   */
+  async getById(id, tx) {
+    const client = tx || sql
+    await this.checkAndExpireIfNeeded(id, client)
+
+    const [phieu] = await client`
+      SELECT 
+        pdc.id,
+        pdc.ma_phieu_coc,
+        pdc.khach_hang_id,
+        pdc.nhu_cau_thue_id,
+        pdc.phong_id,
+        pdc.giuong_id,
+        pdc.so_giuong_thue,
+        pdc.ngay_dat_coc,
+        pdc.han_thanh_toan,
+        pdc.so_tien_coc::float AS so_tien_coc,
+        pdc.phuong_thuc_thanh_toan,
+        pdc.chung_tu_url,
+        pdc.chi_nhanh_id,
+        pdc.sale_id,
+        pdc.nguoi_xac_nhan_id,
+        pdc.trang_thai,
+        kh.ho_ten AS khach_hang_ho_ten,
+        kh.so_dien_thoai AS khach_hang_so_dien_thoai,
+        kh.email AS khach_hang_email,
+        kh.gioi_tinh AS khach_hang_gioi_tinh,
+        kh.quoc_tich AS khach_hang_quoc_tich,
+        p.ma_phong,
+        p.loai_phong,
+        p.khu_vuc,
+        p.gia_thue_mot_giuong::float AS phong_gia_thue,
+        g.ma_giuong
+      FROM phieu_dat_coc pdc
+      JOIN khach_hang kh ON pdc.khach_hang_id = kh.id
+      JOIN phong p ON pdc.phong_id = p.id
+      LEFT JOIN giuong g ON pdc.giuong_id = g.id
+      WHERE pdc.id = ${id}
+    `
+    return phieu || null
+  },
+
+  /**
+   * Submit a payment slip for a deposit sheet (Sale action).
+   * 
+   * @param {string} id - Deposit sheet UUID
+   * @param {Object} data - { chung_tu_url, phuong_thuc_thanh_toan }
+   * @param {Object} [tx] - Optional postgres.js transaction client
+   * @returns {Promise<Object>} The updated deposit sheet
+   */
+  async nopChungTu(id, data, tx) {
+    const client = tx || sql
+
+    // 1. Verify existence
+    const [existing] = await client`
+      SELECT id FROM phieu_dat_coc WHERE id = ${id}
+    `
+    if (!existing) {
+      const err = new Error('Không tìm thấy phiếu đặt cọc.')
+      err.code = 'NOT_FOUND'
+      err.status = 404
+      throw err
+    }
+
+    // 2. Check and run lazy expiry
+    await this.checkAndExpireIfNeeded(id, client)
+
+    // 3. Fetch updated status
+    const [phieu] = await client`
+      SELECT id, trang_thai
+      FROM phieu_dat_coc
+      WHERE id = ${id}
+    `
+
+    if (phieu.trang_thai === 'HetHan') {
+      const err = new Error('Phiếu đặt cọc đã hết hạn thanh toán (quá 24h).')
+      err.code = 'PHIEU_COC_HET_HAN'
+      err.status = 422
+      throw err
+    }
+    if (phieu.trang_thai === 'DaThanhToan') {
+      const err = new Error('Phiếu đặt cọc đã được xác nhận thanh toán trước đó.')
+      err.code = 'PHIEU_COC_DA_XAC_NHAN'
+      err.status = 409
+      throw err
+    }
+    if (phieu.trang_thai !== 'ChoThanhToan') {
+      const err = new Error('Trạng thái phiếu đặt cọc không hợp lệ để nộp chứng từ.')
+      err.code = 'TRANG_THAI_KHONG_HOP_LE'
+      err.status = 422
+      throw err
+    }
+
+    // 4. Update slip URL and payment method
+    const [updated] = await client`
+      UPDATE phieu_dat_coc
+      SET chung_tu_url = ${data.chung_tu_url},
+          phuong_thuc_thanh_toan = ${data.phuong_thuc_thanh_toan}
+      WHERE id = ${id}
+      RETURNING id, ma_phieu_coc, chung_tu_url, phuong_thuc_thanh_toan, trang_thai
+    `
+    return updated
+  },
+
+  /**
+   * Confirm or reject a deposit payment (Manager action).
+   * 
+   * @param {string} id - Deposit sheet UUID
+   * @param {boolean} xacNhanBool - True to approve, false to reject
+   * @param {string} userXacNhanId - UUID of the Manager approving the sheet
+   * @param {Object} [tx] - Optional postgres.js transaction client
+   * @returns {Promise<Object>} The updated deposit sheet
+   */
+  async xacNhan(id, xacNhanBool, userXacNhanId, tx) {
+    const client = tx || sql
+
+    // 1. Verify existence
+    const [existing] = await client`
+      SELECT id, phong_id, giuong_id, chung_tu_url, trang_thai 
+      FROM phieu_dat_coc 
+      WHERE id = ${id}
+    `
+    if (!existing) {
+      const err = new Error('Không tìm thấy phiếu đặt cọc.')
+      err.code = 'NOT_FOUND'
+      err.status = 404
+      throw err
+    }
+
+    // 2. Check and run lazy expiry
+    await this.checkAndExpireIfNeeded(id, client)
+
+    // 3. Fetch updated status
+    const [phieu] = await client`
+      SELECT id, trang_thai, phong_id, giuong_id, chung_tu_url, phuong_thuc_thanh_toan
+      FROM phieu_dat_coc
+      WHERE id = ${id}
+    `
+
+    if (phieu.trang_thai === 'HetHan') {
+      const err = new Error('Phiếu đặt cọc đã hết hạn thanh toán (quá 24h).')
+      err.code = 'PHIEU_COC_HET_HAN'
+      err.status = 422
+      throw err
+    }
+    if (phieu.trang_thai === 'DaThanhToan') {
+      const err = new Error('Phiếu đặt cọc đã được xác nhận thanh toán trước đó.')
+      err.code = 'PHIEU_COC_DA_XAC_NHAN'
+      err.status = 409
+      throw err
+    }
+    if (phieu.trang_thai !== 'ChoThanhToan') {
+      const err = new Error('Trạng thái phiếu đặt cọc không hợp lệ để xác nhận.')
+      err.code = 'TRANG_THAI_KHONG_HOP_LE'
+      err.status = 422
+      throw err
+    }
+
+    // 4. Handle confirmation
+    if (xacNhanBool === true) {
+      // Must have slip uploaded
+      if (!phieu.chung_tu_url) {
+        const err = new Error('Không thể xác nhận phiếu cọc khi chưa có chứng từ thanh toán.')
+        err.code = 'CHUNG_TU_CHUA_NOI'
+        err.status = 422
+        throw err
+      }
+
+      // Update status to 'DaThanhToan'
+      const [updated] = await client`
+        UPDATE phieu_dat_coc
+        SET trang_thai = 'DaThanhToan',
+            nguoi_xac_nhan_id = ${userXacNhanId}
+        WHERE id = ${id}
+        RETURNING id, ma_phieu_coc, trang_thai, nguoi_xac_nhan_id
+      `
+
+      // Lock bed(s) to 'DaDatCoc'
+      if (phieu.giuong_id) {
+        // Shared/single room bed
+        await phongService.updateTrangThaiGiuong(
+          phieu.giuong_id, 
+          'DaDatCoc', 
+          'Đã nhận đặt cọc giường lẻ', 
+          userXacNhanId, 
+          client
+        )
+      } else {
+        // Entire room: lock all beds
+        const beds = await client`
+          SELECT id 
+          FROM giuong 
+          WHERE phong_id = ${phieu.phong_id}
+        `
+        for (const bed of beds) {
+          await phongService.updateTrangThaiGiuong(
+            bed.id, 
+            'DaDatCoc', 
+            'Đã nhận đặt cọc nguyên phòng', 
+            userXacNhanId, 
+            client
+          )
+        }
+      }
+
+      return updated
+    } else {
+      // Rejection: reset slip URL and payment method to NULL
+      const [updated] = await client`
+        UPDATE phieu_dat_coc
+        SET chung_tu_url = NULL,
+            phuong_thuc_thanh_toan = NULL
+        WHERE id = ${id}
+        RETURNING id, ma_phieu_coc, trang_thai, chung_tu_url, phuong_thuc_thanh_toan
+      `
+      return updated
+    }
   }
 }
+
