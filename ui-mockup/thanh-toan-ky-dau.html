@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thanh toán kỳ đầu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="../assets/css/variables.css" />
+    <link rel="stylesheet" href="../assets/css/components.css" />
+    <link rel="stylesheet" href="../assets/css/layout.css" />
+
+    <style>
+      .wizard-steps {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 32px;
+        background: white;
+        padding: 20px 32px;
+        border-radius: 16px;
+        border: 1px solid var(--gray-200);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .wizard-step {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--gray-400);
+        font-weight: 600;
+      }
+
+      .wizard-step.active {
+        color: var(--primary);
+      }
+
+      .wizard-step.active .step-num {
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+      }
+
+      .step-num {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--gray-200);
+        color: var(--gray-600);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        font-weight: 700;
+        transition: all 0.25s ease;
+      }
+
+      .step-line {
+        flex: 1;
+        height: 2px;
+        background: var(--gray-200);
+        margin: 0 16px;
+      }
+
+      .step-line.active {
+        background: var(--primary);
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+
+      .search-container {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+
+      .step-content {
+        display: none;
+      }
+
+      .step-content.active {
+        display: block;
+      }
+
+      .checklist-box {
+        background: var(--gray-50);
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius-md);
+        padding: 20px;
+      }
+
+      .check-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+        font-size: 15px;
+      }
+
+      .member-panel {
+        background: white;
+        border: 1px solid var(--gray-300);
+        border-radius: var(--radius-sm);
+        margin-bottom: 16px;
+        overflow: hidden;
+      }
+
+      .member-header {
+        background: var(--gray-100);
+        padding: 12px 16px;
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .member-body {
+        padding: 16px;
+      }
+
+      .reject-box {
+        display: none;
+        background: #fef2f2;
+        border: 1px solid #fee2e2;
+        padding: 16px;
+        border-radius: var(--radius-sm);
+        margin-top: 16px;
+      }
+
+      .alert-warning {
+        display: none;
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        padding: 16px;
+        border-radius: var(--radius-sm);
+        margin-top: 20px;
+        gap: 16px;
+        align-items: flex-start;
+      }
+
+      .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+        border: 1px solid var(--gray-200);
+        border-radius: 12px;
+        margin-bottom: 24px;
+      }
+
+      .invoice-table {
+        width: 100%;
+        border-collapse: collapse;
+        white-space: nowrap;
+      }
+
+      .invoice-table th,
+      .invoice-table td {
+        padding: 16px;
+        border-bottom: 1px solid var(--gray-200);
+        text-align: left;
+      }
+
+      .invoice-table th {
+        background: var(--gray-100);
+        color: var(--gray-700);
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 13px;
+        letter-spacing: 0.5px;
+      }
+
+      .invoice-table tbody tr {
+        transition: 0.2s;
+      }
+
+      .invoice-table tbody tr:hover {
+        background: var(--gray-50);
+      }
+
+      .invoice-total-row {
+        background: var(--primary-light) !important;
+        font-weight: 800;
+        font-size: 18px;
+        color: var(--primary-hover);
+      }
+
+      .text-right {
+        text-align: right !important;
+      }
+
+      .text-center {
+        text-align: center !important;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="layout">
+      <!-- SIDEBAR KẾ TOÁN -->
+      <aside class="sidebar" style="background: #1e293b">
+        <div class="logo">HomeStay Dorm</div>
+        <div class="menu-title">NGHIỆP VỤ KẾ TOÁN</div>
+        <ul class="sidebar-menu">
+          <li><a href="#">📊 Dashboard Kế toán</a></li>
+          <li>
+            <a class="active" href="thanh-toan-ky-dau.html">
+              💰 Thanh toán kỳ đầu
+            </a>
+          </li>
+          <li><a href="#">📉 Khấu trừ chi phí (Trả phòng)</a></li>
+        </ul>
+      </aside>
+
+      <div class="main">
+        <header class="header">
+          <h3>Phân hệ Kế toán</h3>
+          <div class="user-box">
+            <div class="user-avatar">KT</div>
+            <div>
+              <strong>Phạm Thị D</strong><br />
+              Kế toán viên
+            </div>
+          </div>
+        </header>
+
+        <div class="content">
+          <!-- WIZARD -->
+          <div class="wizard-steps" id="wizard-indicators">
+            <div class="wizard-step active" id="ind-1">
+              <div class="step-num">1</div>
+              <div>Phiếu thu chi tiết</div>
+            </div>
+            <div class="step-line" id="line-1"></div>
+            <div class="wizard-step" id="ind-2">
+              <div class="step-num">2</div>
+              <div>Xác nhận thu tiền</div>
+            </div>
+          </div>
+
+          <!-- BƯỚC 1: PHIẾU THU -->
+          <div class="step-content active" id="step-1">
+            <div class="page-header">
+              <h1 class="page-title">Chi tiết khoản thu kỳ đầu</h1>
+              <p class="page-subtitle">
+                Hệ thống tự động tính toán các khoản phí dựa trên hợp đồng vừa
+                ký.
+              </p>
+            </div>
+
+            <div class="card" style="margin-bottom: 24px">
+              <h3 style="margin-bottom: 16px">Tìm Hợp đồng</h3>
+              <div class="search-container">
+                <input
+                  type="text"
+                  id="search-input"
+                  class="input"
+                  placeholder="Nhập SDT người thụ hưởng hoặc Mã Hợp đồng..."
+                />
+                <button class="btn btn-primary" onclick="loadTicketData()">
+                  Tải thông tin
+                </button>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3 style="margin-bottom: 16px">
+                Thông tin khách hàng & Hợp đồng
+              </h3>
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: 1fr 1fr;
+                  gap: 16px;
+                  margin-bottom: 24px;
+                  background: var(--gray-50);
+                  padding: 16px;
+                  border-radius: 8px;
+                "
+              >
+                <div><strong>Khách hàng:</strong> Nguyễn Văn A</div>
+                <div><strong>Phòng thuê:</strong> P105 (Khu Bắc)</div>
+                <div><strong>Kỳ thanh toán:</strong> Tháng 06/2026</div>
+                <div>
+                  <strong>Trạng thái:</strong>
+                  <span class="badge status-pending">Chờ thu tiền</span>
+                </div>
+              </div>
+
+              <h3 style="margin-bottom: 12px">Bảng kê chi tiết</h3>
+
+              <div class="table-responsive">
+                <table class="invoice-table">
+                  <thead>
+                    <tr>
+                      <th class="text-center" style="width: 60px">STT</th>
+                      <th>Khoản mục phát sinh</th>
+                      <th class="text-right">Đơn giá (VND)</th>
+                      <th class="text-right">Số lượng</th>
+                      <th class="text-right">Thành tiền (VND)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="text-center">1</td>
+                      <td>
+                        <strong>Tiền thuê phòng (Tháng đầu)</strong><br />
+                        <span style="font-size: 13px; color: var(--gray-500)"
+                          >Theo Hợp đồng đã ký</span
+                        >
+                      </td>
+                      <td class="text-right">1,800,000</td>
+                      <td class="text-right">2 giường</td>
+                      <td
+                        class="text-right"
+                        style="font-weight: 600; color: var(--gray-900)"
+                      >
+                        3,600,000
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="text-center">2</td>
+                      <td>
+                        <strong>Phí nước sinh hoạt</strong><br />
+                        <span style="font-size: 13px; color: var(--gray-500)"
+                          >Thu khoán / tháng</span
+                        >
+                      </td>
+                      <td class="text-right">50,000</td>
+                      <td class="text-right">2 người</td>
+                      <td
+                        class="text-right"
+                        style="font-weight: 600; color: var(--gray-900)"
+                      >
+                        100,000
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="text-center">3</td>
+                      <td>
+                        <strong>Phí Wifi / Internet</strong><br />
+                        <span style="font-size: 13px; color: var(--gray-500)"
+                          >Gói cơ bản</span
+                        >
+                      </td>
+                      <td class="text-right">100,000</td>
+                      <td class="text-right">1 gói</td>
+                      <td
+                        class="text-right"
+                        style="font-weight: 600; color: var(--gray-900)"
+                      >
+                        100,000
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="text-center">4</td>
+                      <td>
+                        <strong>Phí gửi xe máy</strong><br />
+                        <span style="font-size: 13px; color: var(--gray-500)"
+                          >Khu đỗ xe tầng hầm</span
+                        >
+                      </td>
+                      <td class="text-right">150,000</td>
+                      <td class="text-right">1 xe</td>
+                      <td
+                        class="text-right"
+                        style="font-weight: 600; color: var(--gray-900)"
+                      >
+                        150,000
+                      </td>
+                    </tr>
+                    <tr class="invoice-total-row">
+                      <td colspan="4" class="text-right">TỔNG TIỀN CẦN THU:</td>
+                      <td class="text-right">3,950,000</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="page-actions">
+                <button class="btn btn-primary" onclick="goToStep(2)">
+                  Tiếp tục: Ghi nhận thanh toán ➔
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- BƯỚC 2: XÁC NHẬN THU TIỀN -->
+          <div class="step-content" id="step-2">
+            <div class="page-header">
+              <h1 class="page-title">Xác nhận thu tiền</h1>
+              <p class="page-subtitle">
+                Nhập chính xác số tiền thực tế khách hàng đã thanh toán.
+              </p>
+            </div>
+
+            <div class="card" style="max-width: 600px; margin: 0 auto">
+              <div
+                style="
+                  background: var(--primary-light);
+                  color: var(--primary-hover);
+                  padding: 16px;
+                  border-radius: 8px;
+                  text-align: center;
+                  margin-bottom: 24px;
+                  font-size: 20px;
+                  font-weight: 800;
+                "
+              >
+                TỔNG CẦN THU: 3,950,000 VND
+              </div>
+
+              <div class="form-group">
+                <label
+                  >Hình thức thanh toán <span style="color: red">*</span></label
+                >
+                <select
+                  class="select"
+                  id="payment-method"
+                  onchange="toggleTxCode()"
+                >
+                  <option value="transfer">Chuyển khoản ngân hàng</option>
+                  <option value="cash">Tiền mặt trực tiếp</option>
+                </select>
+              </div>
+
+              <div class="form-group" id="tx-code-group">
+                <label>Mã giao dịch (Nếu có)</label>
+                <input
+                  type="text"
+                  class="input"
+                  placeholder="VD: FT20260605..."
+                />
+              </div>
+
+              <div class="form-group">
+                <label
+                  >Số tiền thực thu (VND)
+                  <span style="color: red">*</span></label
+                >
+                <!-- Dùng type number để validation logic JS đơn giản -->
+                <input
+                  type="number"
+                  class="input"
+                  id="actual-amount"
+                  placeholder="Nhập số tiền..."
+                  value="3000000"
+                  style="font-size: 18px; font-weight: bold"
+                />
+              </div>
+
+              <!-- DÒNG PHỤ: CẢNH BÁO THU THIẾU TIỀN -->
+              <div class="alert-danger" id="shortfall-alert">
+                <div style="font-size: 24px">⚠️</div>
+                <div>
+                  <div style="font-size: 16px; margin-bottom: 4px">
+                    <strong>Chưa đủ số tiền yêu cầu!</strong>
+                  </div>
+                  <div style="font-size: 14px; font-weight: 400">
+                    Còn thiếu <strong id="shortfall-amount">0 đ</strong>. Yêu
+                    cầu khách hàng thanh toán bổ sung phần còn thiếu để hoàn
+                    tất.
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="page-actions"
+                style="margin-top: 32px; justify-content: space-between"
+              >
+                <button class="btn" onclick="goToStep(1)">⬅ Quay lại</button>
+                <button class="btn btn-success" onclick="confirmPayment()">
+                  ✓ Xác nhận đã thu đủ
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- MÀN HÌNH THÀNH CÔNG -->
+          <div class="step-content" id="step-success">
+            <div class="card success-screen">
+              <div class="success-icon">✓</div>
+              <h1 style="color: var(--gray-900); margin-bottom: 12px">
+                Thu tiền kỳ đầu thành công!
+              </h1>
+              <p
+                style="
+                  color: var(--gray-500);
+                  font-size: 16px;
+                  margin-bottom: 24px;
+                "
+              >
+                Hóa đơn đã được lưu vào hệ thống. Hợp đồng chính thức có hiệu
+                lực.
+              </p>
+
+              <div
+                style="
+                  display: inline-block;
+                  background: var(--gray-50);
+                  border: 1px dashed var(--gray-300);
+                  padding: 16px 32px;
+                  border-radius: 8px;
+                  margin-bottom: 32px;
+                  text-align: left;
+                "
+              >
+                <div style="margin-bottom: 8px">
+                  <strong>Mã hóa đơn:</strong>
+                  <span
+                    style="
+                      color: var(--primary);
+                      font-family: monospace;
+                      font-size: 16px;
+                    "
+                    >HD-TT-99882</span
+                  >
+                </div>
+                <div><strong>Tổng tiền đã thu:</strong> 3,950,000 VND</div>
+              </div>
+
+              <div>
+                <!-- TRIGGER GIAO TIẾP VỚI MÀN BÀN GIAO PHÒNG -->
+                <button
+                  class="btn btn-primary"
+                  onclick="window.location.href = 'ban-giao-phong.html'"
+                  style="font-size: 16px; padding: 14px 28px"
+                >
+                  ➔ Chuyển sang Bàn giao phòng
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Hằng số tổng tiền cần thu (Lấy từ bảng Bước 1)
+      const TOTAL_REQUIRED = 3950000;
+
+      // Hàm chuyển bước Wizard
+      function goToStep(step) {
+        document
+          .querySelectorAll(".step-content")
+          .forEach((el) => el.classList.remove("active"));
+        document
+          .querySelectorAll(".wizard-step")
+          .forEach((el) => el.classList.remove("active"));
+
+        document.getElementById(`step-${step}`).classList.add("active");
+
+        if (step === 1 || step === 2) {
+          document.getElementById(`ind-1`).classList.add("active");
+          if (step === 2) {
+            document.getElementById(`ind-2`).classList.add("active");
+            document.getElementById(`line-1`).classList.add("active");
+          } else {
+            document.getElementById(`line-1`).classList.remove("active");
+          }
+        }
+      }
+
+      // Ẩn/hiện ô Mã giao dịch tùy theo hình thức thanh toán
+      function toggleTxCode() {
+        const method = document.getElementById("payment-method").value;
+        const txGroup = document.getElementById("tx-code-group");
+        if (method === "cash") {
+          txGroup.style.display = "none";
+        } else {
+          txGroup.style.display = "block";
+        }
+      }
+
+      // Logic xác nhận thanh toán (Xử lý DÒNG PHỤ)
+      function confirmPayment() {
+        const inputVal = document.getElementById("actual-amount").value;
+        const actualAmount = parseInt(inputVal) || 0;
+        const alertBox = document.getElementById("shortfall-alert");
+        const shortfallAmountSpan = document.getElementById("shortfall-amount");
+
+        if (actualAmount < TOTAL_REQUIRED) {
+          // --- DÒNG PHỤ: TIỀN THỰC THU CHƯA ĐỦ ---
+          const diff = TOTAL_REQUIRED - actualAmount;
+          // Format tiền tệ kiểu Việt Nam (VD: 950.000)
+          shortfallAmountSpan.innerText = diff.toLocaleString("vi-VN") + " đ";
+          alertBox.style.display = "flex";
+        } else {
+          // --- LUỒNG CHÍNH: ĐÃ THU ĐỦ ---
+          alertBox.style.display = "none";
+          // Ẩn wizard steps
+          document.getElementById("wizard-indicators").style.display = "none";
+          // Chuyển sang màn hình thành công
+          document
+            .querySelectorAll(".step-content")
+            .forEach((el) => el.classList.remove("active"));
+          document.getElementById("step-success").classList.add("active");
+        }
+      }
+    </script>
+  </body>
+</html>

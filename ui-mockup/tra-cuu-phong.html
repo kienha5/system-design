@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tra cứu phòng | HomeStay Dorm</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../assets/css/variables.css">
+    <link rel="stylesheet" href="../assets/css/components.css">
+    <link rel="stylesheet" href="../assets/css/layout.css">
+    <style>
+        .btn-logout {
+            background: transparent;
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            margin-left: 12px;
+        }
+
+        .btn-logout:hover {
+            background: var(--danger);
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="layout">
+
+        <!-- DYNAMIC SIDEBAR (Rendered via JS based on Role) -->
+        <aside class="sidebar" id="app-sidebar">
+            <div class="logo">
+                🏢 HomeStay Dorm
+            </div>
+            <div class="menu-title" id="menu-title-text">
+                QUẢN LÝ HỆ THỐNG
+            </div>
+            <ul class="sidebar-menu" id="menu-list">
+                <!-- Dynamically populated -->
+            </ul>
+        </aside>
+
+        <!-- MAIN -->
+        <div class="main">
+
+            <!-- HEADER (Dynamic User Info) -->
+            <header class="header">
+                <h3 id="app-subtitle">Tra cứu hệ thống</h3>
+                <div class="user-box">
+                    <div class="user-avatar" id="user-avatar-text">US</div>
+                    <div>
+                        <strong id="user-name-text">Người dùng</strong>
+                        <br>
+                        <span id="user-role-text">Vai trò</span>
+                    </div>
+                    <button class="btn-logout" onclick="logout()">Đăng xuất</button>
+                </div>
+            </header>
+
+            <!-- CONTENT -->
+            <div class="content">
+
+                <!-- PAGE HEADER -->
+                <div class="page-header">
+                    <div class="page-title">🔍 Tra cứu danh sách phòng/giường</div>
+                    <div class="page-subtitle">Xem chi tiết trạng thái, loại phòng, sức chứa và lịch sử vận hành của từng phòng.</div>
+                </div>
+
+                <!-- CONTAINER CHO COMPONENT TRA CỨU PHÒNG -->
+                <div id="tra-cuu-component-wrapper"></div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Import component Javascript -->
+    <script src="../assets/js/tra-cuu-phong.js"></script>
+    <script>
+        // Check login and populate dynamic navigation layout
+        const role = localStorage.getItem('user_role') || 'quanly'; // default to quanly if undefined
+
+        const menuTitleText = document.getElementById('menu-title-text');
+        const menuList = document.getElementById('menu-list');
+        const userAvatarText = document.getElementById('user-avatar-text');
+        const userNameText = document.getElementById('user-name-text');
+        const userRoleText = document.getElementById('user-role-text');
+        const appSubtitle = document.getElementById('app-subtitle');
+
+        if (role === 'sale') {
+            menuTitleText.innerText = 'NGHIỆP VỤ SALE';
+            userAvatarText.innerText = 'SL';
+            userNameText.innerText = 'Trần Thị B';
+            userRoleText.innerText = 'Nhân viên Sale';
+            appSubtitle.innerText = 'Phân hệ kinh doanh';
+
+            menuList.innerHTML = `
+                <li><a href="dashboard-sale.html">🏠 Dashboard</a></li>
+                <li><a href="tiep-nhan-yeu-cau.html">📋 Tiếp nhận yêu cầu</a></li>
+                <li><a href="lap-phieu-dat-coc.html">📝 Lập phiếu đặt cọc</a></li>
+                <li><a href="ghi-nhan-dat-coc.html">💰 Ghi nhận đặt cọc</a></li>
+                <li><a href="dang-ky-tra-phong.html">🚪 Đăng ký trả phòng</a></li>
+                <li><a href="design-system.html">🎨 Design System</a></li>
+            `;
+        } else if (role === 'quanly') {
+            menuTitleText.innerText = 'QUẢN LÝ';
+            userAvatarText.innerText = 'QL';
+            userNameText.innerText = 'Nguyễn Văn A';
+            userRoleText.innerText = 'Quản lý homestay';
+            appSubtitle.innerText = 'Phân hệ quản lý';
+
+            menuList.innerHTML = `
+                <li><a href="dashboard-quan-ly.html">🏠 Dashboard</a></li>
+                <li><a href="room-list.html">🛏 Danh sách phòng</a></li>
+                <li><a href="lap-hop-dong-thue.html">📄 Hợp đồng thuê</a></li>
+                <li><a href="ban-giao-phong.html">🔑 Bàn giao phòng</a></li>
+                <li><a href="do-soat-tai-san.html">🛡 Đối soát tài sản</a></li>
+                <li><a href="design-system.html">🎨 Design System</a></li>
+            `;
+        } else if (role === 'ketoan') {
+            menuTitleText.innerText = 'KẾ TOÁN';
+            userAvatarText.innerText = 'KT';
+            userNameText.innerText = 'Trần Thị C';
+            userRoleText.innerText = 'Kế toán viên';
+            appSubtitle.innerText = 'Phân hệ tài chính';
+
+            menuList.innerHTML = `
+                <li><a href="dashboard-ke-toan.html">🏠 Dashboard</a></li>
+                <li><a href="thanh-toan-ky-dau.html">💵 Thanh toán kỳ đầu</a></li>
+                <li><a href="khau-tru-chi-phi.html">📉 Khấu trừ chi phí</a></li>
+                <li><a href="design-system.html">🎨 Design System</a></li>
+            `;
+        }
+
+        // Initialize the reusable TraCuuPhong component inside the wrapper div
+        initTraCuuPhong('tra-cuu-component-wrapper', {
+            mode: 'browse' // browse mode allows viewing rooms and changing status filter
+        });
+
+        function logout() {
+            localStorage.removeItem('user_role');
+            window.location.href = 'dang-nhap.html';
+        }
+    </script>
+</body>
+
+</html>

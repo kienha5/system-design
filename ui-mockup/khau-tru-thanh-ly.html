@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khấu trừ & Thanh lý hợp đồng</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../assets/css/variables.css">
+    <link rel="stylesheet" href="../assets/css/components.css">
+    <link rel="stylesheet" href="../assets/css/layout.css">
+
+    <style>
+
+        /* =========================
+        GRID UTILITIES
+        ========================= */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 24px;
+        }
+
+        /* =========================
+        BREADCRUMB
+        ========================= */
+        .breadcrumb {
+            font-size: 13px;
+            color: var(--gray-500);
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+        .breadcrumb span {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* =========================
+        WIZARD STEP INDICATOR
+        ========================= */
+        .wizard-steps {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            background: white;
+            padding: 20px 32px;
+            border-radius: 16px;
+            border: 1px solid var(--gray-200);
+            box-shadow: var(--shadow-sm);
+        }
+        .wizard-step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--gray-400);
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .wizard-step.active { color: var(--primary); }
+        .wizard-step.active .step-num {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        .wizard-step.completed { color: var(--success); }
+        .wizard-step.completed .step-num {
+            background: var(--success);
+            color: white;
+        }
+        .step-num {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--gray-200);
+            color: var(--gray-600);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 700;
+            flex-shrink: 0;
+            transition: all 0.25s ease;
+        }
+        .step-line {
+            flex: 1;
+            height: 2px;
+            background: var(--gray-200);
+            margin: 0 16px;
+            transition: background 0.25s ease;
+        }
+        .step-line.active { background: var(--primary); }
+
+        /* =========================
+        WIZARD CONTENT TOGGLE
+        ========================= */
+        .step-content { display: none; }
+        .step-content.active { display: block; }
+
+        /* =========================
+        BUTTON STATES
+        ========================= */
+        .btn:disabled,
+        .btn[disabled] {
+            opacity: 0.45;
+            cursor: not-allowed;
+            transform: none !important;
+            pointer-events: none;
+        }
+        .btn-secondary {
+            background: var(--gray-100);
+            color: var(--gray-700);
+            border: 1px solid var(--gray-300);
+        }
+        .btn-secondary:hover { background: var(--gray-200); }
+
+        /* =========================
+        ALERT BOXES
+        ========================= */
+        .alert {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            font-weight: 500;
+        }
+        .alert-warning {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            color: #b45309;
+        }
+        .alert-danger {
+            background: #fef2f2;
+            border: 1px solid #fee2e2;
+            color: var(--danger);
+        }
+        .alert-success {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #15803d;
+        }
+        .alert-info {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e40af;
+        }
+
+        /* =========================
+        CALCULATION BOX
+        ========================= */
+        .calc-box {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .calc-box h4 {
+            font-size: 14px;
+            color: var(--gray-500);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .calc-result {
+            font-size: 28px;
+            font-weight: 800;
+        }
+        .calc-result.positive { color: var(--success); }
+        .calc-result.negative { color: var(--danger); }
+
+        .calc-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+        .calc-table td {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--gray-200);
+            font-size: 14px;
+        }
+        .calc-table td:last-child {
+            text-align: right;
+            font-weight: 600;
+        }
+        .calc-table tr.total-row td {
+            border-top: 2px solid var(--gray-300);
+            border-bottom: none;
+            font-weight: 800;
+            font-size: 16px;
+            padding-top: 14px;
+            color: var(--gray-800);
+        }
+        .calc-table tr.deduct-row td { color: var(--danger); }
+        .calc-table tr.refund-row td {
+            color: var(--success);
+            font-weight: 800;
+            font-size: 15px;
+        }
+        .calc-table tr.payable-row td {
+            color: var(--danger);
+            font-weight: 800;
+            font-size: 15px;
+        }
+
+        /* =========================
+        REFUND RATE TABLE
+        ========================= */
+        .refund-rate-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .refund-rate-table th {
+            background: var(--gray-100);
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 700;
+            color: var(--gray-700);
+        }
+        .refund-rate-table td {
+            padding: 12px 16px;
+            border-top: 1px solid var(--gray-200);
+        }
+        .refund-rate-table tr.active-row {
+            background: var(--primary-light);
+            font-weight: 700;
+        }
+        .refund-rate-table tr.active-row td { color: var(--primary-hover); }
+
+        /* =========================
+        ROLE SECTION
+        ========================= */
+        .role-section {
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .role-section-kt {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+        }
+        .role-section-ql {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+        }
+        .role-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            margin-bottom: 16px;
+        }
+        .role-label-kt { background: #bfdbfe; color: #1e40af; }
+        .role-label-ql { background: #bbf7d0; color: #15803d; }
+
+        /* =========================
+        DEDUCTION INPUT ROW
+        ========================= */
+        .deduct-row-input {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 12px;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        .deduct-row-input:last-child { border-bottom: none; }
+
+        .deduct-label { font-size: 14px; font-weight: 600; color: var(--gray-700); }
+        .deduct-sub   { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+
+        .deduct-amount-input {
+            width: 180px;
+            padding: 10px 14px;
+            border: 1px solid var(--gray-300);
+            border-radius: 10px;
+            outline: none;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: right;
+            transition: 0.25s;
+            background: white;
+        }
+        .deduct-amount-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37,99,235,.15);
+        }
+
+        .btn-remove-deduct {
+            background: none;
+            border: 1px solid var(--gray-300);
+            color: var(--gray-400);
+            border-radius: 8px;
+            padding: 8px 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 16px;
+        }
+        .btn-remove-deduct:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+            background: #fef2f2;
+        }
+
+        /* =========================
+        REALTIME RESULT BOX
+        ========================= */
+        .result-box {
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .result-box.refund-mode {
+            background: #f0fdf4;
+            border: 2px solid #86efac;
+        }
+        .result-box.payable-mode {
+            background: #fef2f2;
+            border: 2px solid #fca5a5;
+        }
+        .result-box .result-label {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .result-box.refund-mode .result-label  { color: #15803d; }
+        .result-box.payable-mode .result-label { color: #b91c1c; }
+
+        .result-box .result-amount {
+            font-size: 36px;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+        .result-box.refund-mode .result-amount  { color: var(--success); }
+        .result-box.payable-mode .result-amount { color: var(--danger); }
+
+        .result-box .result-sub {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        /* =========================
+        PHIẾU ĐỐI SOÁT (STEP 2)
+        ========================= */
+        .phieu-header {
+            text-align: center;
+            padding: 24px;
+            border-bottom: 2px solid var(--gray-200);
+            margin-bottom: 24px;
+        }
+        .phieu-header h2 {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--gray-800);
+            margin-bottom: 4px;
+        }
+        .phieu-header p {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        .phieu-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px 32px;
+            margin-bottom: 24px;
+        }
+        .phieu-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 8px 0;
+            border-bottom: 1px dashed var(--gray-200);
+            font-size: 14px;
+        }
+        .phieu-info-row .pi-label { color: var(--gray-500); }
+        .phieu-info-row .pi-value { font-weight: 700; color: var(--gray-800); }
+
+        .phieu-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .phieu-table th {
+            background: var(--gray-800);
+            color: white;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 700;
+        }
+        .phieu-table th:last-child { text-align: right; }
+        .phieu-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        .phieu-table td:last-child { text-align: right; font-weight: 600; }
+        .phieu-table tr.section-header td {
+            background: var(--gray-100);
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--gray-600);
+        }
+        .phieu-table tr.deduct-item td { color: var(--danger); }
+        .phieu-table tr.final-row td {
+            background: var(--gray-50);
+            font-weight: 800;
+            font-size: 16px;
+            border-top: 2px solid var(--gray-300);
+            border-bottom: 2px solid var(--gray-300);
+        }
+        .phieu-table tr.final-positive td { color: var(--success); }
+        .phieu-table tr.final-negative td { color: var(--danger); }
+
+        /* =========================
+        STEP 3 — CHECKLIST
+        ========================= */
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 16px;
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .checklist-item:hover { border-color: var(--primary); background: var(--gray-50); }
+        .checklist-item.checked {
+            border-color: var(--success);
+            background: #f0fdf4;
+        }
+        .checklist-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--success);
+            cursor: pointer;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .checklist-item .ci-title {
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--gray-800);
+            margin-bottom: 4px;
+        }
+        .checklist-item .ci-sub {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        /* =========================
+        CONDITIONAL SECTIONS (Step 3)
+        ========================= */
+        .cond-section {
+            display: none;
+            margin-bottom: 16px;
+        }
+        .cond-section.visible { display: block; }
+
+        /* =========================
+        SUCCESS SCREEN
+        ========================= */
+        .success-screen {
+            text-align: center;
+            padding: 48px 24px;
+        }
+        .success-icon {
+            width: 72px;
+            height: 72px;
+            background: var(--status-empty-bg);
+            color: var(--status-empty-text);
+            border-radius: 50%;
+            font-size: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+        }
+        .success-info-box {
+            background: var(--gray-100);
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 16px 24px;
+            display: inline-block;
+            text-align: left;
+            margin-bottom: 24px;
+            min-width: 360px;
+        }
+        .success-info-box div {
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        .success-info-box div:last-child { margin-bottom: 0; }
+
+        /* =========================
+        DISPUTE SECTION
+        ========================= */
+        .dispute-banner {
+            background: #fef3c7;
+            border: 2px solid #fbbf24;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .dispute-banner.visible { display: block; }
+
+    </style>
+</head>
+
+<body>
+
+<div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo">🏢 HomeStay Dorm</div>
+        <div class="menu-title">KẾ TOÁN</div>
+        <ul class="sidebar-menu">
+            <li><a href="dashboard-kt.html">🏠 Dashboard</a></li>
+            <li><a href="thanh-toan-ky-dau.html">💳 Thanh toán kỳ đầu</a></li>
+            <li><a class="active" href="khau-tru-thanh-ly.html">💰 Khấu trừ & Thanh lý</a></li>
+        </ul>
+        <div style="margin-top: auto; padding-top: 24px; border-top: 1px solid #1e293b;">
+            <div class="menu-title">QUẢN LÝ</div>
+            <ul class="sidebar-menu">
+                <li><a href="dang-ky-tra-phong.html">🚪 Đăng ký trả phòng</a></li>
+                <li><a href="do-soat-tai-san.html">🔍 Đối soát tài sản</a></li>
+            </ul>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main">
+
+        <header class="header">
+            <h3>Phân hệ kế toán</h3>
+            <div class="user-box">
+                <div class="user-avatar">KT</div>
+                <div>
+                    <strong>Lê Thị Kế</strong><br>
+                    Kế toán
+                </div>
+            </div>
+        </header>
+
+        <div class="content">
+
+            <!-- BREADCRUMB -->
+            <div class="breadcrumb">
+                Dashboard > Đối soát tài sản >
+                <span>Khấu trừ & Thanh lý hợp đồng</span>
+            </div>
+
+            <!-- WIZARD -->
+            <div class="wizard-steps" id="wizard-steps">
+                <div class="wizard-step active" id="ind-1">
+                    <div class="step-num">1</div>
+                    <div>Tính toán chi phí</div>
+                </div>
+                <div class="step-line" id="line-1"></div>
+                <div class="wizard-step" id="ind-2">
+                    <div class="step-num">2</div>
+                    <div>Phiếu đối soát</div>
+                </div>
+                <div class="step-line" id="line-2"></div>
+                <div class="wizard-step" id="ind-3">
+                    <div class="step-num">3</div>
+                    <div>Xác nhận thanh lý</div>
+                </div>
+            </div>
+
+            <!-- ====================================== -->
+            <!-- STEP 1: TÍNH TOÁN CHI PHÍ (KẾ TOÁN)  -->
+            <!-- ====================================== -->
+            <div class="step-content active" id="step-1">
+
+                <div class="page-header">
+                    <h1 class="page-title">💰 Tính toán chi phí khấu trừ</h1>
+                    <p class="page-subtitle">
+                        Xác định tỷ lệ hoàn cọc và nhập các khoản khấu trừ phát sinh
+                    </p>
+                </div>
+
+                <!-- THÔNG TIN HĐ & ĐỐI SOÁT -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <h3 style="margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--gray-200);">
+                        📋 Thông tin hợp đồng & kết quả đối soát tài sản
+                    </h3>
+                    <div class="grid-3">
+                        <div class="detail-item">
+                            <label>Khách hàng</label>
+                            <div class="detail-value" style="font-weight: 700;">Nguyễn Văn A</div>
+                        </div>
+                        <div class="detail-item">
+                            <label>Phòng</label>
+                            <div class="detail-value" style="font-weight: 700; color: var(--primary);">P101 — Khu A</div>
+                        </div>
+                        <div class="detail-item">
+                            <label>Mã hợp đồng</label>
+                            <div class="detail-value" style="font-family: monospace; font-weight: 700;">HD-00123</div>
+                        </div>
+                    </div>
+                    <div class="grid-3">
+                        <div class="detail-item">
+                            <label>Ngày nhận phòng</label>
+                            <div class="detail-value">01/01/2026</div>
+                        </div>
+                        <div class="detail-item">
+                            <label>Ngày trả phòng</label>
+                            <div class="detail-value" style="font-weight: 700;">15/06/2026</div>
+                        </div>
+                        <div class="detail-item">
+                            <label>Thời gian lưu trú</label>
+                            <div class="detail-value">5 tháng 14 ngày</div>
+                        </div>
+                    </div>
+                    <div class="grid-3">
+                        <div class="detail-item">
+                            <label>Tiền đặt cọc gốc</label>
+                            <div class="detail-value" style="font-weight: 800; font-size: 18px; color: var(--primary);">
+                                3,600,000 đ
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <label>Kết quả đối soát tài sản</label>
+                            <div class="detail-value">
+                                <span class="badge" style="background:#dcfce7; color:#15803d;">6 mục bình thường</span>
+                                &nbsp;
+                                <span class="badge" style="background:#fecaca; color:#b91c1c;">2 mục hư hỏng</span>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <label>Trạng thái hợp đồng</label>
+                            <div class="detail-value">
+                                <span class="badge status-renting">Đang thuê — Chưa hết hạn</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TỶ LỆ HOÀN CỌC CƠ BẢN -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <h3 style="margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--gray-200);">
+                        📊 Tỷ lệ hoàn cọc cơ bản
+                    </h3>
+
+                    <table class="refund-rate-table" style="margin-bottom: 16px;">
+                        <thead>
+                            <tr>
+                                <th>Tình trạng</th>
+                                <th>Điều kiện</th>
+                                <th style="text-align: right;">Tỷ lệ hoàn</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Đã cọc, chưa ký HĐ</td>
+                                <td>Hủy trước khi nhận phòng</td>
+                                <td style="text-align: right;">80%</td>
+                            </tr>
+                            <tr class="active-row">
+                                <td>Đã ký HĐ, chưa hết hạn</td>
+                                <td>Lưu trú <strong>dưới 6 tháng</strong> ← áp dụng</td>
+                                <td style="text-align: right; font-size: 18px;">50%</td>
+                            </tr>
+                            <tr>
+                                <td>Đã ký HĐ, chưa hết hạn</td>
+                                <td>Lưu trú <strong>trên 6 tháng</strong></td>
+                                <td style="text-align: right;">70%</td>
+                            </tr>
+                            <tr>
+                                <td>Hết hạn HĐ đúng hạn</td>
+                                <td>Trả phòng đúng ngày kết thúc HĐ</td>
+                                <td style="text-align: right;">100%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="calc-box" style="margin-bottom: 0;">
+                        <h4>Tiền cọc cơ sở được hoàn (trước khấu trừ)</h4>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <span style="font-size: 14px; color: var(--gray-600);">
+                                    3,600,000 đ × 50% =
+                                </span>
+                            </div>
+                            <div class="calc-result positive" id="base-refund-display">
+                                1,800,000 đ
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CÁC KHOẢN KHẤU TRỪ -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--gray-200);">
+                        <h3>🔻 Các khoản khấu trừ phát sinh</h3>
+                        <button class="btn btn-secondary btn-sm" onclick="addDeductionRow()">
+                            + Thêm khoản khấu trừ
+                        </button>
+                    </div>
+
+                    <div id="deduction-list">
+                        <!-- Render bởi JS -->
+                    </div>
+
+                    <div style="margin-top: 12px; padding-top: 12px; border-top: 2px solid var(--gray-300); display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 700; color: var(--gray-700);">Tổng khấu trừ:</span>
+                        <span id="total-deduct-display" style="font-size: 20px; font-weight: 800; color: var(--danger);">
+                            0 đ
+                        </span>
+                    </div>
+                </div>
+
+                <!-- KẾT QUẢ REALTIME -->
+                <div class="result-box refund-mode" id="result-box" style="margin-bottom: 24px;">
+                    <div class="result-label" id="result-label">Hoàn cọc cho khách hàng</div>
+                    <div class="result-amount" id="result-amount">1,800,000 đ</div>
+                    <div class="result-sub" id="result-sub">
+                        Tiền cọc cơ sở 1,800,000 đ − Tổng khấu trừ 0 đ
+                    </div>
+                </div>
+
+                <div class="page-actions">
+                    <button class="btn btn-primary" onclick="goToStep2()">
+                        Lập phiếu đối soát ➔
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- ========================== -->
+            <!-- STEP 2: PHIẾU ĐỐI SOÁT    -->
+            <!-- ========================== -->
+            <div class="step-content" id="step-2">
+
+                <div class="page-header">
+                    <h1 class="page-title">📄 Phiếu đối soát chính thức</h1>
+                    <p class="page-subtitle">
+                        Xác nhận tất cả các khoản để lập phiếu đối soát gửi Quản lý
+                    </p>
+                </div>
+
+                <!-- PHIẾU ĐỐI SOÁT -->
+                <div class="card" style="margin-bottom: 24px;" id="phieu-card">
+
+                    <div class="phieu-header">
+                        <h2>PHIẾU ĐỐI SOÁT HOÀN TRẢ CỌC</h2>
+                        <p id="phieu-date-display">Ngày lập: —</p>
+                        <p id="phieu-id-display" style="font-family: monospace; font-weight: 700; color: var(--primary); font-size: 18px; margin-top: 4px;">
+                            DS-00001
+                        </p>
+                    </div>
+
+                    <!-- THÔNG TIN CƠ BẢN -->
+                    <div class="phieu-info-grid" style="margin-bottom: 24px;">
+                        <div class="phieu-info-row">
+                            <span class="pi-label">Khách hàng</span>
+                            <span class="pi-value">Nguyễn Văn A</span>
+                        </div>
+                        <div class="phieu-info-row">
+                            <span class="pi-label">Mã hợp đồng</span>
+                            <span class="pi-value" style="font-family: monospace;">HD-00123</span>
+                        </div>
+                        <div class="phieu-info-row">
+                            <span class="pi-label">Phòng</span>
+                            <span class="pi-value">P101 — Khu A</span>
+                        </div>
+                        <div class="phieu-info-row">
+                            <span class="pi-label">Ngày nhận phòng</span>
+                            <span class="pi-value">01/01/2026</span>
+                        </div>
+                        <div class="phieu-info-row">
+                            <span class="pi-label">Ngày trả phòng</span>
+                            <span class="pi-value">15/06/2026</span>
+                        </div>
+                        <div class="phieu-info-row">
+                            <span class="pi-label">Thời gian lưu trú</span>
+                            <span class="pi-value">5 tháng 14 ngày</span>
+                        </div>
+                    </div>
+
+                    <!-- BẢNG CHI TIẾT CÁC KHOẢN -->
+                    <table class="phieu-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;">#</th>
+                                <th>Khoản mục</th>
+                                <th style="width: 180px;">Số tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody id="phieu-table-body">
+                            <!-- Render bởi JS -->
+                        </tbody>
+                    </table>
+
+                    <!-- GHI CHÚ KẾ TOÁN -->
+                    <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--gray-200);">
+                        <label style="font-weight: 700; display: block; margin-bottom: 8px; font-size: 14px;">
+                            Ghi chú của Kế toán
+                        </label>
+                        <textarea class="input" id="kt-note" style="min-height: 80px; resize: vertical; font-size: 14px;" placeholder="Nhập ghi chú nếu có..."></textarea>
+                    </div>
+
+                    <!-- CHỮ KÝ (MOCK) -->
+                    <div class="grid-2" style="margin-top: 32px; padding-top: 20px; border-top: 1px dashed var(--gray-300);">
+                        <div style="text-align: center; padding: 16px;">
+                            <div style="font-size: 13px; font-weight: 700; color: var(--gray-500); margin-bottom: 48px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                Kế toán lập phiếu
+                            </div>
+                            <div style="font-weight: 700;">Lê Thị Kế</div>
+                        </div>
+                        <div style="text-align: center; padding: 16px;">
+                            <div style="font-size: 13px; font-weight: 700; color: var(--gray-500); margin-bottom: 48px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                Quản lý xác nhận
+                            </div>
+                            <div style="color: var(--gray-400); font-size: 13px;">Ký tại bước thanh lý</div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="alert alert-info">
+                    <span>🔔</span>
+                    <div>
+                        Sau khi xác nhận, phiếu đối soát sẽ được gửi đến Quản lý để thực hiện
+                        bước thanh lý hợp đồng và bàn giao tiền cho khách hàng.
+                    </div>
+                </div>
+
+                <div class="page-actions">
+                    <button class="btn btn-secondary" onclick="backToStep1()">
+                        ⬅ Quay lại chỉnh sửa
+                    </button>
+                    <button class="btn btn-primary" onclick="goToStep3()">
+                        ✓ Xác nhận & Gửi Quản lý ➔
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- ==================================== -->
+            <!-- STEP 3: XÁC NHẬN THANH LÝ (QUẢN LÝ) -->
+            <!-- ==================================== -->
+            <div class="step-content" id="step-3">
+
+                <div class="page-header">
+                    <h1 class="page-title">✅ Xác nhận thanh lý hợp đồng</h1>
+                    <p class="page-subtitle">
+                        Quản lý xác nhận kết quả, thu/hoàn tiền và hoàn tất thủ tục trả phòng
+                    </p>
+                </div>
+
+                <div class="role-section role-section-ql" style="margin-bottom: 24px;">
+                    <div class="role-label role-label-ql">🏢 Quản lý thao tác</div>
+                    <p style="font-size: 14px; color: #15803d;">
+                        Màn này dành cho Quản lý. Kế toán đã lập phiếu đối soát và chuyển sang.
+                        Hãy thông báo kết quả cho khách hàng và hoàn tất các bước bên dưới.
+                    </p>
+                </div>
+
+                <!-- PHIẾU ĐỐI SOÁT READONLY -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--gray-200);">
+                        <h3>📄 Phiếu đối soát (chỉ xem)</h3>
+                        <span class="badge status-pending" id="s3-phieu-id">DS-00001</span>
+                    </div>
+
+                    <table class="phieu-table" style="margin-bottom: 0;">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;">#</th>
+                                <th>Khoản mục</th>
+                                <th style="width: 180px;">Số tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody id="s3-phieu-table">
+                            <!-- Render bởi JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- TRANH CHẤP -->
+                <div class="dispute-banner" id="dispute-banner">
+                    <div style="display: flex; gap: 12px; align-items: flex-start;">
+                        <span style="font-size: 20px;">⚠️</span>
+                        <div>
+                            <strong style="font-size: 15px;">Khách hàng không đồng ý kết quả!</strong>
+                            <p style="font-size: 13px; margin-top: 6px;">
+                                Hồ sơ sẽ được đánh dấu "Đang tranh chấp" và cần rà soát lại
+                                trước khi tiếp tục thanh lý.
+                            </p>
+                            <div class="form-group" style="margin-top: 12px; margin-bottom: 0;">
+                                <label style="font-size: 13px; font-weight: 700;">Mô tả nội dung tranh chấp</label>
+                                <textarea class="input" id="dispute-note" style="min-height: 80px; font-size: 13px; margin-top: 6px;" placeholder="Nhập chi tiết điểm khách hàng không đồng ý..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CHECKLIST XÁC NHẬN -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <h3 style="margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--gray-200);">
+                        ✅ Checklist hoàn tất thủ tục
+                    </h3>
+
+                    <!-- 1. Thông báo KH -->
+                    <div class="checklist-item" id="chk-item-1" onclick="toggleCheck(1)">
+                        <input type="checkbox" id="chk-1" onchange="onCheckChange()">
+                        <div>
+                            <div class="ci-title">Đã thông báo kết quả đối soát cho khách hàng</div>
+                            <div class="ci-sub">Trình bày rõ từng khoản khấu trừ và số tiền hoàn/cần trả thêm cho khách</div>
+                        </div>
+                    </div>
+
+                    <!-- 2. KH đồng ý / không đồng ý -->
+                    <div class="checklist-item" id="chk-item-2" onclick="toggleCheck(2)">
+                        <input type="checkbox" id="chk-2" onchange="onCheckChange()">
+                        <div>
+                            <div class="ci-title">Khách hàng đã xác nhận đồng ý kết quả</div>
+                            <div class="ci-sub">
+                                Nếu khách không đồng ý, bỏ chọn mục này và nhấn nút "Ghi nhận tranh chấp"
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Thanh toán (conditional) -->
+                    <div class="cond-section" id="cond-pay" style="display:none;">
+                        <div class="alert alert-danger" style="margin-bottom: 12px;">
+                            <span>💳</span>
+                            <div>
+                                <strong>Khách hàng cần thanh toán thêm:
+                                    <span id="s3-payable-amount" style="font-size:16px;">0 đ</span>
+                                </strong>
+                                <p style="font-size:13px; margin-top:4px;">
+                                    Xác nhận Kế toán đã thu đủ số tiền này trước khi tiếp tục.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="checklist-item" id="chk-item-3a" onclick="toggleCheck('3a')">
+                            <input type="checkbox" id="chk-3a" onchange="onCheckChange()">
+                            <div>
+                                <div class="ci-title">Kế toán đã thu đủ khoản tiền khách cần trả thêm</div>
+                                <div class="ci-sub">Xác nhận số tiền đã về quỹ trước khi thanh lý</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="cond-section" id="cond-refund" style="display:none;">
+                        <div class="alert alert-success" style="margin-bottom: 12px;">
+                            <span>💚</span>
+                            <div>
+                                <strong>Cần hoàn cọc cho khách hàng:
+                                    <span id="s3-refund-amount" style="font-size:16px;">0 đ</span>
+                                </strong>
+                                <p style="font-size:13px; margin-top:4px;">
+                                    Xác nhận Kế toán đã hoàn tiền (tiền mặt hoặc chuyển khoản).
+                                </p>
+                            </div>
+                        </div>
+                        <div class="checklist-item" id="chk-item-3b" onclick="toggleCheck('3b')">
+                            <input type="checkbox" id="chk-3b" onchange="onCheckChange()">
+                            <div>
+                                <div class="ci-title">Kế toán đã hoàn trả tiền cọc cho khách hàng</div>
+                                <div class="ci-sub">Xác nhận tiền đã được chuyển hoặc trả mặt</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Ký biên bản -->
+                    <div class="checklist-item" id="chk-item-4" onclick="toggleCheck(4)">
+                        <input type="checkbox" id="chk-4" onchange="onCheckChange()">
+                        <div>
+                            <div class="ci-title">Khách hàng và Quản lý đã ký biên bản trả phòng</div>
+                            <div class="ci-sub">Biên bản xác nhận ngày trả phòng và tình trạng tài sản</div>
+                        </div>
+                    </div>
+
+                    <!-- 5. Thu hồi chìa khóa -->
+                    <div class="checklist-item" id="chk-item-5" onclick="toggleCheck(5)">
+                        <input type="checkbox" id="chk-5" onchange="onCheckChange()">
+                        <div>
+                            <div class="ci-title">Đã thu hồi chìa khóa / thẻ từ phòng</div>
+                            <div class="ci-sub">Xác nhận đã nhận lại toàn bộ chìa khóa và thẻ từ thang máy từ khách</div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- PHƯƠNG THỨC THANH TOÁN (NẾU CÓ) -->
+                <div class="cond-section" id="cond-payment-method" style="margin-bottom: 24px;">
+                    <div class="card">
+                        <h3 style="margin-bottom: 16px;">💳 Hình thức hoàn/thu tiền</h3>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label>Hình thức <span style="color:var(--danger)">*</span></label>
+                                <select class="select" id="payment-method">
+                                    <option value="">— Chọn hình thức —</option>
+                                    <option value="cash">Tiền mặt</option>
+                                    <option value="transfer">Chuyển khoản</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Mã giao dịch (nếu chuyển khoản)</label>
+                                <input type="text" class="input" id="payment-txn" placeholder="Nhập mã GD...">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page-actions">
+                    <button
+                        class="btn btn-secondary"
+                        style="background:#fff3cd; border-color:#fbbf24; color:#b45309;"
+                        onclick="openDispute()">
+                        ⚠ Ghi nhận tranh chấp
+                    </button>
+                    <button
+                        class="btn btn-primary"
+                        id="btn-settlement"
+                        disabled
+                        onclick="confirmSettlement()">
+                        🏁 Thanh lý hợp đồng
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- ================ -->
+            <!-- SUCCESS SCREEN   -->
+            <!-- ================ -->
+            <div id="success-screen" class="card" style="display: none;">
+                <div class="success-screen">
+
+                    <div class="success-icon">✓</div>
+
+                    <h2 style="color: var(--status-empty-text); margin-bottom: 8px;">
+                        Thanh lý hợp đồng hoàn tất!
+                    </h2>
+                    <p style="color: var(--gray-600); max-width: 540px; margin: 0 auto 24px;">
+                        Hợp đồng đã được thanh lý thành công.
+                        Phòng <strong id="success-room">P101</strong> đã được cập nhật về trạng thái
+                        <span class="badge status-empty" style="font-size: 13px;">Trống</span>.
+                    </p>
+
+                    <div class="success-info-box">
+                        <div>
+                            <strong>Mã phiếu đối soát:</strong>
+                            <span style="font-family: monospace; font-weight: 700; color: var(--primary);" id="success-phieu-id">
+                                DS-00001
+                            </span>
+                        </div>
+                        <div><strong>Khách hàng:</strong> Nguyễn Văn A</div>
+                        <div><strong>Phòng:</strong> P101 — Khu A</div>
+                        <div><strong>Ngày thanh lý:</strong> <span id="success-date">—</span></div>
+                        <div id="success-result-line">
+                            <strong>Kết quả:</strong>
+                            <span id="success-result-text" style="font-weight: 700; color: var(--success);">—</span>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-success" style="max-width: 540px; margin: 0 auto 24px; text-align: left;">
+                        <span>✅</span>
+                        <div>
+                            <strong>Đã cập nhật hệ thống:</strong>
+                            <ul style="margin-top: 8px; padding-left: 16px; font-size: 13px;">
+                                <li>Hợp đồng HD-00123 → trạng thái <strong>Đã thanh lý</strong></li>
+                                <li>Phòng P101 → trạng thái <strong>Trống</strong></li>
+                                <li>Hồ sơ khách hàng Nguyễn Văn A → cập nhật lịch sử</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; justify-content: center;">
+                        <a href="dang-ky-tra-phong.html" class="btn btn-secondary" style="display: inline-block;">
+                            ⬅ Về danh sách trả phòng
+                        </a>
+                        <a href="dashboard-ql.html" class="btn btn-primary" style="display: inline-block;">
+                            🏠 Về Dashboard Quản lý
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+
+    /* =============================================
+       MOCK DATA
+    ============================================= */
+    const CONTRACT = {
+        deposit: 3600000,
+        baseRefundRate: 0.5,    // 50% — lưu trú dưới 6 tháng, chưa hết hạn
+    };
+
+    const BASE_REFUND = CONTRACT.deposit * CONTRACT.baseRefundRate; // 1,800,000
+
+    // Danh sách khoản khấu trừ mặc định (từ đối soát tài sản + hợp đồng)
+    const DEFAULT_DEDUCTIONS = [
+        { id: 1, label: "Tiền thuê còn nợ",                  sub: "Nếu có nợ tiền thuê chưa thanh toán",          amount: 0 },
+        { id: 2, label: "Tiền điện / nước / dịch vụ còn nợ", sub: "Phí dịch vụ chưa thanh toán tính đến ngày trả", amount: 0 },
+        { id: 3, label: "Chi phí bồi thường tài sản hư hỏng", sub: "Từ kết quả đối soát tài sản",                  amount: 500000 },
+        { id: 4, label: "Phạt vi phạm nội quy",               sub: "Nếu có biên bản vi phạm",                      amount: 0 },
+    ];
+
+    let deductions = DEFAULT_DEDUCTIONS.map(d => ({ ...d }));
+    let nextDeductId = 5;
+    let phieuId = 'DS-' + String(Math.floor(Math.random() * 90000) + 10000);
+    let finalNetAmount = 0; // > 0: hoàn KH; < 0: KH trả thêm
+
+    /* =============================================
+       RENDER DANH SÁCH KHOẢN KHẤU TRỪ
+    ============================================= */
+    function renderDeductions() {
+        const container = document.getElementById('deduction-list');
+        if (deductions.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center; padding: 24px; color: var(--gray-400); font-size: 14px;">
+                    Không có khoản khấu trừ nào. Nhấn "+ Thêm khoản khấu trừ" để thêm.
+                </div>`;
+        } else {
+            container.innerHTML = deductions.map(d => `
+                <div class="deduct-row-input">
+                    <div>
+                        <div class="deduct-label">${d.label}</div>
+                        <div class="deduct-sub">${d.sub}</div>
+                    </div>
+                    <input
+                        type="number"
+                        class="deduct-amount-input"
+                        min="0"
+                        step="1000"
+                        value="${d.amount}"
+                        placeholder="0"
+                        onchange="updateDeductAmount(${d.id}, this.value)"
+                        oninput="updateDeductAmount(${d.id}, this.value)">
+                    <button class="btn-remove-deduct" onclick="removeDeduction(${d.id})" title="Xóa khoản này">✕</button>
+                </div>
+            `).join('');
+        }
+        recalculate();
+    }
+
+    function addDeductionRow() {
+        const label = prompt('Tên khoản khấu trừ:', 'Khoản phát sinh khác');
+        if (!label) return;
+        deductions.push({ id: nextDeductId++, label, sub: 'Khoản phát sinh thêm', amount: 0 });
+        renderDeductions();
+    }
+
+    function removeDeduction(id) {
+        deductions = deductions.filter(d => d.id !== id);
+        renderDeductions();
+    }
+
+    function updateDeductAmount(id, val) {
+        const d = deductions.find(d => d.id === id);
+        if (d) d.amount = parseInt(val) || 0;
+        recalculate();
+    }
+
+    /* =============================================
+       TÍNH TOÁN REALTIME
+    ============================================= */
+    function recalculate() {
+        const totalDeduct = deductions.reduce((s, d) => s + (d.amount || 0), 0);
+        finalNetAmount = BASE_REFUND - totalDeduct;
+
+        document.getElementById('total-deduct-display').innerText =
+            totalDeduct.toLocaleString('vi-VN') + ' đ';
+
+        const box    = document.getElementById('result-box');
+        const label  = document.getElementById('result-label');
+        const amount = document.getElementById('result-amount');
+        const sub    = document.getElementById('result-sub');
+
+        if (finalNetAmount >= 0) {
+            box.className = 'result-box refund-mode';
+            label.innerText  = '✅ Hoàn cọc cho khách hàng';
+            amount.innerText = finalNetAmount.toLocaleString('vi-VN') + ' đ';
+        } else {
+            box.className = 'result-box payable-mode';
+            label.innerText  = '🔴 Khách hàng cần thanh toán thêm';
+            amount.innerText = Math.abs(finalNetAmount).toLocaleString('vi-VN') + ' đ';
+        }
+
+        sub.innerText =
+            'Tiền cọc cơ sở ' + BASE_REFUND.toLocaleString('vi-VN') + ' đ' +
+            ' − Tổng khấu trừ ' + totalDeduct.toLocaleString('vi-VN') + ' đ';
+    }
+
+    /* =============================================
+       RENDER PHIẾU ĐỐI SOÁT (STEP 2)
+    ============================================= */
+    function renderPhieu(targetTbodyId) {
+        const tbody  = document.getElementById(targetTbodyId);
+        const totalDeduct = deductions.reduce((s, d) => s + (d.amount || 0), 0);
+        const rows   = [];
+
+        rows.push(`
+            <tr class="section-header">
+                <td colspan="3">TIỀN CỌC GỐC</td>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>Tiền đặt cọc gốc</td>
+                <td>${CONTRACT.deposit.toLocaleString('vi-VN')} đ</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>Tỷ lệ hoàn cọc cơ bản (50% — dưới 6 tháng, chưa hết hạn)</td>
+                <td style="color:var(--success);">${BASE_REFUND.toLocaleString('vi-VN')} đ</td>
+            </tr>
+        `);
+
+        if (deductions.length > 0) {
+            rows.push(`
+                <tr class="section-header">
+                    <td colspan="3">CÁC KHOẢN KHẤU TRỪ</td>
+                </tr>
+            `);
+            deductions.forEach((d, i) => {
+                if (d.amount > 0) {
+                    rows.push(`
+                        <tr class="deduct-item">
+                            <td>${i + 3}</td>
+                            <td>${d.label}</td>
+                            <td>− ${d.amount.toLocaleString('vi-VN')} đ</td>
+                        </tr>
+                    `);
+                }
+            });
+            rows.push(`
+                <tr class="deduct-item">
+                    <td></td>
+                    <td style="font-weight:700;">Tổng khấu trừ</td>
+                    <td style="font-weight:800;">− ${totalDeduct.toLocaleString('vi-VN')} đ</td>
+                </tr>
+            `);
+        }
+
+        const isRefund  = finalNetAmount >= 0;
+        const absAmount = Math.abs(finalNetAmount);
+        rows.push(`
+            <tr class="final-row ${isRefund ? 'final-positive' : 'final-negative'}">
+                <td colspan="2">${isRefund ? '💚 Số tiền hoàn cho khách hàng' : '🔴 Số tiền khách hàng cần trả thêm'}</td>
+                <td style="font-size:18px;">${isRefund ? '' : ''}${absAmount.toLocaleString('vi-VN')} đ</td>
+            </tr>
+        `);
+
+        tbody.innerHTML = rows.join('');
+    }
+
+    /* =============================================
+       NAVIGATION
+    ============================================= */
+    function goToStep2() {
+        // Tạo ngày lập phiếu
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('vi-VN', { day:'2-digit', month:'2-digit', year:'numeric' });
+        const timeStr = now.toLocaleTimeString('vi-VN', { hour:'2-digit', minute:'2-digit' });
+
+        document.getElementById('phieu-date-display').innerText = `Ngày lập: ${dateStr} ${timeStr}`;
+        document.getElementById('phieu-id-display').innerText   = phieuId;
+
+        renderPhieu('phieu-table-body');
+        switchStep(1, 2);
+    }
+
+    function goToStep3() {
+        // Copy phiếu sang step 3 (readonly)
+        document.getElementById('s3-phieu-id').innerText = phieuId;
+        renderPhieu('s3-phieu-table');
+
+        // Hiện section cond theo chiều tiền
+        const isRefund = finalNetAmount >= 0;
+        document.getElementById('cond-pay').style.display    = isRefund ? 'none'  : 'block';
+        document.getElementById('cond-refund').style.display = isRefund ? 'block' : 'none';
+        document.getElementById('cond-payment-method').style.display = 'block';
+
+        const absAmt = Math.abs(finalNetAmount).toLocaleString('vi-VN') + ' đ';
+        document.getElementById('s3-payable-amount').innerText = absAmt;
+        document.getElementById('s3-refund-amount').innerText  = absAmt;
+
+        switchStep(2, 3);
+    }
+
+    function backToStep1() { switchStep(2, 1, true); }
+
+    function switchStep(from, to, isBack = false) {
+        document.getElementById('step-' + from).classList.remove('active');
+        document.getElementById('step-' + to).classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        if (!isBack) {
+            document.getElementById('ind-' + from).classList.remove('active');
+            document.getElementById('ind-' + from).classList.add('completed');
+            document.getElementById('ind-' + to).classList.add('active');
+            if (from < to) document.getElementById('line-' + from).classList.add('active');
+        } else {
+            document.getElementById('ind-' + from).classList.remove('active');
+            document.getElementById('ind-' + to).classList.remove('completed');
+            document.getElementById('ind-' + to).classList.add('active');
+            if (to < from) document.getElementById('line-' + to).classList.remove('active');
+        }
+    }
+
+    /* =============================================
+       CHECKLIST STEP 3
+    ============================================= */
+    function toggleCheck(id) {
+        const chk = document.getElementById('chk-' + id);
+        chk.checked = !chk.checked;
+        onCheckChange();
+    }
+
+    function onCheckChange() {
+        // Cập nhật style checked
+        ['1','2','3a','3b','4','5'].forEach(id => {
+            const el  = document.getElementById('chk-item-' + id);
+            const chk = document.getElementById('chk-' + id);
+            if (!el || !chk) return;
+            el.classList.toggle('checked', chk.checked);
+        });
+
+        // Kiểm tra đủ điều kiện để bật nút thanh lý
+        const isRefund = finalNetAmount >= 0;
+        const base     = ['chk-1','chk-2','chk-4','chk-5'].every(id => {
+            const el = document.getElementById(id);
+            return el && el.checked;
+        });
+        const finance  = isRefund
+            ? (document.getElementById('chk-3b') && document.getElementById('chk-3b').checked)
+            : (document.getElementById('chk-3a') && document.getElementById('chk-3a').checked);
+
+        document.getElementById('btn-settlement').disabled = !(base && finance);
+    }
+
+    /* =============================================
+       TRANH CHẤP
+    ============================================= */
+    function openDispute() {
+        const banner = document.getElementById('dispute-banner');
+        if (banner.classList.contains('visible')) {
+            banner.classList.remove('visible');
+        } else {
+            banner.classList.add('visible');
+            banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    /* =============================================
+       XÁC NHẬN THANH LÝ
+    ============================================= */
+    function confirmSettlement() {
+        const now      = new Date();
+        const dateDisp = now.toLocaleDateString('vi-VN', { day:'2-digit', month:'2-digit', year:'numeric' });
+        const isRefund = finalNetAmount >= 0;
+        const absAmt   = Math.abs(finalNetAmount);
+
+        // Điền success screen
+        document.getElementById('success-room').innerText      = 'P101';
+        document.getElementById('success-phieu-id').innerText  = phieuId;
+        document.getElementById('success-date').innerText      = dateDisp;
+        document.getElementById('success-result-text').innerText = isRefund
+            ? 'Hoàn cọc ' + absAmt.toLocaleString('vi-VN') + ' đ cho khách hàng'
+            : 'Thu thêm ' + absAmt.toLocaleString('vi-VN') + ' đ từ khách hàng';
+        document.getElementById('success-result-text').style.color =
+            isRefund ? 'var(--success)' : 'var(--danger)';
+
+        // Ẩn wizard & step
+        document.getElementById('wizard-steps').style.display  = 'none';
+        document.getElementById('step-3').style.display        = 'none';
+
+        // Hiện success
+        document.getElementById('success-screen').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* =============================================
+       INIT
+    ============================================= */
+    renderDeductions();
+
+</script>
+
+</body>
+</html>

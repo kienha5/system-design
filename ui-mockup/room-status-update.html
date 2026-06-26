@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Cập nhật trạng thái phòng</title>
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="../assets/css/variables.css">
+
+    <link rel="stylesheet"
+          href="../assets/css/components.css">
+
+    <link rel="stylesheet"
+          href="../assets/css/layout.css">
+
+</head>
+
+<body>
+
+<div class="layout">
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            HomeStay Dorm
+        </div>
+
+        <div class="menu-title">
+            QUẢN LÝ
+        </div>
+
+        <ul class="sidebar-menu">
+
+            <li>
+                <a href="#">
+                    Dashboard
+                </a>
+            </li>
+
+            <li>
+                <a class="active"
+                   href="#">
+                    Quản lý phòng
+                </a>
+            </li>
+
+            <li>
+                <a href="#">
+                    Hợp đồng thuê
+                </a>
+            </li>
+
+            <li>
+                <a href="#">
+                    Bàn giao phòng
+                </a>
+            </li>
+
+        </ul>
+
+    </aside>
+
+    <!-- MAIN -->
+
+    <div class="main">
+
+        <header class="header">
+
+            <h3>
+                Cập nhật trạng thái phòng
+            </h3>
+
+            <div class="user-box">
+
+                <div class="user-avatar">
+                    QL
+                </div>
+
+                <div>
+                    <strong>Nguyễn Văn A</strong>
+                    <br>
+                    Quản lý
+                </div>
+
+            </div>
+
+        </header>
+
+        <div class="content">
+
+            <!-- BREADCRUMB -->
+
+            <div class="breadcrumb">
+                Dashboard > Quản lý phòng > P101
+            </div>
+
+            <div class="page-header">
+
+                <div class="page-title">
+                    Thông tin phòng
+                </div>
+
+                <div class="page-subtitle">
+                    Cập nhật trạng thái và theo dõi lịch sử thay đổi
+                </div>
+
+            </div>
+
+            <!-- STATUS OVERVIEW -->
+
+            <div class="card">
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                ">
+
+                    <div>
+
+                        <h3>
+                            Phòng P101 đang được thuê
+                        </h3>
+
+                        <p style="
+                            margin-top:8px;
+                            color:#64748b;
+                        ">
+                            Hợp đồng còn hiệu lực đến 31/12/2026
+                        </p>
+
+                    </div>
+
+                    <span class="badge status-renting">
+                        Đang thuê
+                    </span>
+
+                </div>
+
+            </div>
+
+            <br>
+
+            <!-- ROOM INFO -->
+
+            <div class="card">
+
+                <div class="detail-grid">
+
+                    <div>
+
+                        <div class="detail-item">
+
+                            <label>Mã phòng</label>
+
+                            <div class="detail-value">
+                                P101
+                            </div>
+
+                        </div>
+
+                        <div class="detail-item">
+
+                            <label>Loại phòng</label>
+
+                            <div class="detail-value">
+                                Nam
+                            </div>
+
+                        </div>
+
+                        <div class="detail-item">
+
+                            <label>Khu vực</label>
+
+                            <div class="detail-value">
+                                Khu A
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div>
+
+                        <div class="detail-item">
+
+                            <label>Sức chứa</label>
+
+                            <div class="detail-value">
+                                6 người
+                            </div>
+
+                        </div>
+
+                        <div class="detail-item">
+
+                            <label>Trạng thái hiện tại</label>
+
+                            <div class="detail-value">
+
+                                <span class="badge status-renting">
+                                    Đang thuê
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <br>
+
+            <!-- WARNING -->
+
+            <div class="card"
+                 style="
+                 background:#fef2f2;
+                 border:1px solid #fecaca;
+                 ">
+
+                <strong>
+                    ⚠ Cảnh báo
+                </strong>
+
+                <p style="margin-top:8px;">
+
+                    Phòng đang có hợp đồng thuê hiệu lực.
+                    Nếu chuyển sang trạng thái "Trống",
+                    hệ thống sẽ yêu cầu xác nhận 2 bước.
+
+                </p>
+
+            </div>
+
+            <br>
+
+            <!-- UPDATE FORM -->
+
+            <div class="card">
+
+                <h3>
+                    Cập nhật trạng thái
+                </h3>
+
+                <br>
+
+                <div class="detail-grid">
+
+                    <div class="form-group">
+
+                        <label>
+                            Trạng thái hiện tại
+                        </label>
+
+                        <input
+                                type="text"
+                                class="input"
+                                value="Đang thuê"
+                                disabled>
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label>
+                            Trạng thái mới
+                        </label>
+
+                        <select class="select">
+
+                            <option>Trống</option>
+                            <option>Chờ đặt cọc</option>
+                            <option>Đã đặt cọc</option>
+                            <option>Đang thuê</option>
+                            <option>Bảo trì</option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>
+                        Người thực hiện
+                    </label>
+
+                    <input
+                            type="text"
+                            class="input"
+                            value="Nguyễn Văn A"
+                            disabled>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>
+                        Lý do thay đổi
+                    </label>
+
+                    <textarea
+                            class="textarea"
+                            placeholder="Nhập lý do thay đổi trạng thái..."></textarea>
+
+                </div>
+
+                <div class="page-actions">
+
+                    <button class="btn">
+                        ← Quay lại
+                    </button>
+
+                    <button class="btn">
+                        Hủy
+                    </button>
+
+                    <button class="btn btn-primary">
+                        Cập nhật trạng thái
+                    </button>
+
+                </div>
+
+            </div>
+
+            <br>
+
+            <!-- HISTORY -->
+
+            <div class="card">
+
+                <h3>
+                    Lịch sử thay đổi
+                </h3>
+
+                <br>
+
+                <div class="timeline">
+
+                    <div class="timeline-item">
+
+                        <div class="timeline-date">
+                            20/07/2026 09:15
+                        </div>
+
+                        <div class="timeline-title">
+                            Đã đặt cọc → Đang thuê
+                        </div>
+
+                        <div>
+                            Nguyễn Văn A (Quản lý)
+                        </div>
+
+                        <div style="color:#64748b;">
+                            Lý do: Hoàn tất bàn giao phòng
+                        </div>
+
+                    </div>
+
+                    <div class="timeline-item">
+
+                        <div class="timeline-date">
+                            15/07/2026 14:30
+                        </div>
+
+                        <div class="timeline-title">
+                            Chờ đặt cọc → Đã đặt cọc
+                        </div>
+
+                        <div>
+                            Nguyễn Văn A (Quản lý)
+                        </div>
+
+                        <div style="color:#64748b;">
+                            Lý do: Khách hàng đã thanh toán tiền cọc
+                        </div>
+
+                    </div>
+
+                    <div class="timeline-item">
+
+                        <div class="timeline-date">
+                            14/07/2026 08:10
+                        </div>
+
+                        <div class="timeline-title">
+                            Trống → Chờ đặt cọc
+                        </div>
+
+                        <div>
+                            Nguyễn Văn A (Quản lý)
+                        </div>
+
+                        <div style="color:#64748b;">
+                            Lý do: Tạo phiếu đặt cọc
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

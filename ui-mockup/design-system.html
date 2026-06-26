@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Design System</title>
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="../assets/css/variables.css">
+
+    <link rel="stylesheet"
+          href="../assets/css/components.css">
+
+    <link rel="stylesheet"
+          href="../assets/css/layout.css">
+
+</head>
+
+<body>
+
+<div class="content">
+
+    <div class="page-header">
+
+        <div class="page-title">
+            Design System
+        </div>
+
+        <div class="page-subtitle">
+            Bộ component dùng chung cho toàn hệ thống
+        </div>
+
+    </div>
+
+    <!-- COLORS -->
+
+    <div class="card demo-section">
+
+        <h2>Màu sắc hệ thống</h2>
+
+        <div class="demo-row">
+
+            <div style="
+                width:120px;
+                height:80px;
+                background:#2563eb;
+                border-radius:12px;
+                color:white;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                font-weight:600;
+            ">
+                Primary
+            </div>
+
+            <div style="
+                width:120px;
+                height:80px;
+                background:#16a34a;
+                border-radius:12px;
+                color:white;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                font-weight:600;
+            ">
+                Success
+            </div>
+
+            <div style="
+                width:120px;
+                height:80px;
+                background:#f59e0b;
+                border-radius:12px;
+                color:white;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                font-weight:600;
+            ">
+                Warning
+            </div>
+
+            <div style="
+                width:120px;
+                height:80px;
+                background:#dc2626;
+                border-radius:12px;
+                color:white;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                font-weight:600;
+            ">
+                Danger
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- BUTTON -->
+
+    <div class="card demo-section">
+
+        <h2>Buttons</h2>
+
+        <div class="demo-row">
+
+            <button class="btn btn-primary">
+                Primary Button
+            </button>
+
+            <button class="btn btn-success">
+                Success Button
+            </button>
+
+            <button class="btn btn-danger">
+                Danger Button
+            </button>
+
+            <button class="btn"
+                    disabled>
+                Disabled
+            </button>
+
+        </div>
+
+    </div>
+
+    <!-- INPUT -->
+
+    <div class="card demo-section">
+
+        <h2>Inputs</h2>
+
+        <div class="form-group">
+
+            <label>Text Input</label>
+
+            <input
+                    type="text"
+                    class="input"
+                    placeholder="Nhập dữ liệu">
+
+        </div>
+
+        <div class="form-group">
+
+            <label>Select</label>
+
+            <select class="select">
+
+                <option>Tất cả</option>
+                <option>Khu A</option>
+                <option>Khu B</option>
+
+            </select>
+
+        </div>
+
+        <div class="form-group">
+
+            <label>Textarea</label>
+
+            <textarea
+                    class="textarea"
+                    placeholder="Nhập ghi chú..."></textarea>
+
+        </div>
+
+    </div>
+
+    <!-- BADGES -->
+
+    <div class="card demo-section">
+
+        <h2>Badge Trạng Thái Phòng</h2>
+
+        <div class="demo-row">
+
+            <span class="badge status-empty">
+                Trống
+            </span>
+
+            <span class="badge status-pending">
+                Chờ đặt cọc
+            </span>
+
+            <span class="badge status-deposit">
+                Đã đặt cọc
+            </span>
+
+            <span class="badge status-renting">
+                Đang thuê
+            </span>
+
+            <span class="badge status-maintain">
+                Bảo trì
+            </span>
+
+        </div>
+
+    </div>
+
+    <!-- TABLE -->
+
+    <div class="card demo-section">
+
+        <h2>Table</h2>
+
+        <table class="room-table">
+
+            <thead>
+
+            <tr>
+                <th>Mã phòng</th>
+                <th>Khu vực</th>
+                <th>Loại</th>
+                <th>Trạng thái</th>
+            </tr>
+
+            </thead>
+
+            <tbody>
+
+            <tr>
+
+                <td>P101</td>
+
+                <td>Khu A</td>
+
+                <td>Nam</td>
+
+                <td>
+                    <span class="badge status-empty">
+                        Trống
+                    </span>
+                </td>
+
+            </tr>
+
+            <tr>
+
+                <td>P102</td>
+
+                <td>Khu B</td>
+
+                <td>Nữ</td>
+
+                <td>
+                    <span class="badge status-renting">
+                        Đang thuê
+                    </span>
+                </td>
+
+            </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    <!-- TOAST -->
+
+    <div class="card demo-section">
+
+        <h2>Toast Notification</h2>
+
+        <div class="demo-row">
+
+            <div class="toast toast-success">
+                ✔ Cập nhật thành công
+            </div>
+
+            <div class="toast toast-warning">
+                ⚠ Có cảnh báo
+            </div>
+
+            <div class="toast toast-danger">
+                ✖ Đã xảy ra lỗi
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- BREADCRUMB -->
+
+    <div class="card demo-section">
+
+        <h2>Breadcrumb</h2>
+
+        <div class="breadcrumb">
+
+            Dashboard > Quản lý phòng > Chi tiết phòng
+
+        </div>
+
+    </div>
+
+    <!-- WIZARD -->
+
+    <div class="card demo-section">
+
+        <h2>Wizard Step Indicator</h2>
+
+        <div style="
+            display:flex;
+            gap:20px;
+            align-items:center;
+        ">
+
+            <div class="badge status-renting">
+                Bước 1
+            </div>
+
+            →
+
+            <div class="badge status-empty">
+                Bước 2
+            </div>
+
+            →
+
+            <div class="badge status-maintain">
+                Bước 3
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- MODAL -->
+
+    <div class="card demo-section">
+
+        <h2>Modal</h2>
+
+        <div class="modal-demo">
+
+            <div class="modal-title">
+
+                Xác nhận cập nhật
+
+            </div>
+
+            <div class="modal-content">
+
+                Bạn có chắc chắn muốn chuyển trạng thái phòng thành
+                <strong>"Trống"</strong>
+                không?
+
+            </div>
+
+            <div class="modal-actions">
+
+                <button class="btn">
+                    Hủy
+                </button>
+
+                <button class="btn btn-primary">
+                    Xác nhận
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- TYPOGRAPHY -->
+
+    <div class="card demo-section">
+
+        <h2>Typography</h2>
+
+        <h1 style="margin-bottom:12px;">
+            Heading 1
+        </h1>
+
+        <h2 style="margin-bottom:12px;">
+            Heading 2
+        </h2>
+
+        <h3 style="margin-bottom:12px;">
+            Heading 3
+        </h3>
+
+        <p>
+            Đây là đoạn văn bản mẫu dùng cho nội dung hệ thống.
+        </p>
+
+    </div>
+
+</div>
+
+</body>
+</html>
