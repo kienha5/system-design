@@ -8,6 +8,9 @@ import LapPhieuDatCoc from './pages/sale/LapPhieuDatCoc'
 import DashboardQuanLy from './pages/quanly/DashboardQuanLy'
 import GhiNhanDatCoc from './pages/quanly/GhiNhanDatCoc'
 import LapHopDong from './pages/quanly/LapHopDong'
+import DashboardKeToan from './pages/ketoan/DashboardKeToan'
+import ThanhToanKyDau from './pages/ketoan/ThanhToanKyDau'
+import BanGiaoPhong from './pages/quanly/BanGiaoPhong'
 
 function ProtectedRoute({ children, allowedRoles }) {
   const { user, loading } = useAuth()
@@ -63,16 +66,16 @@ function AppRoutes() {
       <Route path="/lap-hop-dong" element={
         <ProtectedRoute allowedRoles={['QuanLy', 'quản lý', 'Quản lý']}><LapHopDong /></ProtectedRoute>
       } />
+      <Route path="/ban-giao-phong/:hopDongId" element={
+        <ProtectedRoute allowedRoles={['QuanLy', 'quản lý', 'Quản lý']}><BanGiaoPhong /></ProtectedRoute>
+      } />
 
-      {/* Fallbacks */}
+      {/* Accountant (KeToan) routes */}
       <Route path="/dashboard-ke-toan" element={
-        <ProtectedRoute allowedRoles={['KeToan']}>
-          <div style={{ padding: '40px', textAlign: 'center' }}>
-            <h2>Dashboard Kế Toán</h2>
-            <p>Trang này hiện đang được phát triển.</p>
-            <button className="btn btn-primary" onClick={() => window.location.href='/dang-nhap'}>Quay lại</button>
-          </div>
-        </ProtectedRoute>
+        <ProtectedRoute allowedRoles={['KeToan', 'kế toán', 'Kế toán']}><DashboardKeToan /></ProtectedRoute>
+      } />
+      <Route path="/thanh-toan-ky-dau/:hopDongId" element={
+        <ProtectedRoute allowedRoles={['KeToan', 'kế toán', 'Kế toán']}><ThanhToanKyDau /></ProtectedRoute>
       } />
 
       <Route path="/" element={<Navigate to="/dang-nhap" replace />} />

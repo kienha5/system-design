@@ -26,6 +26,13 @@ router.get('/phong', authenticate, validateQuery(searchPhongSchema), phongContro
  */
 router.get('/giuong', authenticate, validateQuery(searchGiuongSchema), phongController.searchGiuong)
 
+/**
+ * @route GET /api/v1/tai-san-phong
+ * @desc Inquiry default assets belonging to a specific room
+ * @access Private (All roles)
+ */
+router.get('/tai-san-phong', authenticate, phongController.getTaiSanPhong)
+
 // =========================================================================
 // UC03 - MANUAL STATUS UPDATES (Restricted to Quản lý)
 // =========================================================================

@@ -7,3 +7,8 @@
 # Chỉ ignore generated client
 backend/node_modules/
 frontend/node_modules/
+
+docs/
+ui-mockup/
+.agent/
+.claude/

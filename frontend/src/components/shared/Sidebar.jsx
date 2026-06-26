@@ -12,6 +12,7 @@ export default function Sidebar() {
   const role = user?.vai_tro?.toLowerCase()
   const isSale = role === 'sale'
   const isQuanLy = role === 'quanly' || role === 'quản lý'
+  const isKeToan = role === 'ketoan' || role === 'kế toán'
 
   return (
     <aside className="sidebar">
@@ -101,11 +102,52 @@ export default function Sidebar() {
                 ✍️ Lập hợp đồng thuê
               </Link>
             </li>
+            <li>
+              <a href="#" className="disabled" onClick={(e) => e.preventDefault()}>
+                💳 Thanh toán kỳ đầu
+              </a>
+            </li>
+            <li>
+              <Link 
+                to="#" 
+                className={location.pathname.startsWith('/ban-giao-phong') ? 'active' : 'disabled'}
+                onClick={(e) => { if (!location.pathname.startsWith('/ban-giao-phong')) e.preventDefault() }}
+              >
+                🏠 Bàn giao phòng
+              </Link>
+            </li>
           </ul>
         </>
       )}
 
-      {!isSale && !isQuanLy && user && (
+      {isKeToan && (
+        <>
+          <div className="menu-title">
+            Nghiệp vụ Kế Toán
+          </div>
+          <ul className="sidebar-menu">
+            <li>
+              <Link 
+                to="/dashboard-ke-toan" 
+                className={isActive('/dashboard-ke-toan') ? 'active' : ''}
+              >
+                🏠 Dashboard Kế Toán
+              </Link>
+            </li>
+            <li>
+              <Link 
+                to="#" 
+                className={location.pathname.startsWith('/thanh-toan-ky-dau') ? 'active' : 'disabled'}
+                onClick={(e) => { if (!location.pathname.startsWith('/thanh-toan-ky-dau')) e.preventDefault() }}
+              >
+                💳 Thanh toán kỳ đầu
+              </Link>
+            </li>
+          </ul>
+        </>
+      )}
+
+      {!isSale && !isQuanLy && !isKeToan && user && (
         <>
           <div className="menu-title">Nghiệp vụ</div>
           <ul className="sidebar-menu">

@@ -58,5 +58,41 @@ export const phongController = {
         }
       })
     }
+  },
+
+  /**
+   * Get default assets list for a room.
+   * 
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   */
+  async getTaiSanPhong(req, res) {
+    try {
+      const { phong_id } = req.query
+      if (!phong_id) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'phong_id là bắt buộc trong query string.'
+          }
+        })
+      }
+      
+      const assets = await phongService.getTaiSanPhong(phong_id)
+      
+      res.json({
+        success: true,
+        data: assets
+      })
+    } catch (err) {
+      res.status(500).json({
+        success: false,
+        error: {
+          code: 'SYSTEM_ERROR',
+          message: 'Lỗi tra cứu danh mục tài sản phòng.'
+        }
+      })
+    }
   }
 }

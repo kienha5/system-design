@@ -7,6 +7,8 @@ import phongRouter from './src/routes/phong.routes.js'
 import nhuCauThueRouter from './src/routes/nhuCauThue.routes.js'
 import phieuDatCocRouter from './src/routes/phieuDatCoc.routes.js'
 import hopDongRouter from './src/routes/hopDong.routes.js'
+import hoaDonRouter from './src/routes/hoaDon.routes.js'
+import bienBanBanGiaoRouter from './src/routes/bienBanBanGiao.routes.js'
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -23,6 +25,8 @@ app.use('/api/v1', phongRouter)
 app.use('/api/v1', nhuCauThueRouter)
 app.use('/api/v1', phieuDatCocRouter)
 app.use('/api/v1', hopDongRouter)
+app.use('/api/v1', hoaDonRouter)
+app.use('/api/v1', bienBanBanGiaoRouter)
 
 // Middleware xử lý lỗi tập trung
 app.use((err, req, res, next) => {

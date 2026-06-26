@@ -119,6 +119,22 @@ export const phongService = {
     return beds
   },
 
+  /**
+   * Search default assets for a specific room.
+   * 
+   * @param {string} phongId - Room UUID
+   * @returns {Promise<Array>}
+   */
+  async getTaiSanPhong(phongId) {
+    const assets = await sql`
+      SELECT id, phong_id, ten_tai_san AS ten, so_luong, 'Tot'::varchar AS tinh_trang, ''::varchar AS ghi_chu
+      FROM tai_san_phong
+      WHERE phong_id = ${phongId}
+      ORDER BY ten_tai_san ASC
+    `
+    return assets
+  },
+
   // =========================================================================
   // UC03 - STATUS TRANSITIONS & LOGGING
   // =========================================================================
