@@ -8,7 +8,8 @@ import {
   getBienBanTraPhong, 
   doSoatTaiSan, 
   khauTruChiPhi, 
-  xacNhanKhach 
+  xacNhanKhach,
+  getGoiYTyLe
 } from '../../api/bienBanTraPhong.api'
 import { thanhLyHopDong } from '../../api/hopDong.api'
 
@@ -36,6 +37,7 @@ export default function TraPhong() {
 
   // Step 2: Cost deductions states (UC14)
   const [tyLeHoanCoc, setTyLeHoanCoc] = useState(100)
+  const [goiYTyLe, setGoiYTyLeState] = useState(null)
   const [tienThueConNo, setTienThueConNo] = useState(0)
   const [tienDienNuocDichVu, setTienDienNuocDichVu] = useState(0)
   const [chiPhiSuaChuaBoiThuong, setChiPhiSuaChuaBoiThuong] = useState(0)
@@ -134,6 +136,25 @@ export default function TraPhong() {
       loadCheckoutData()
     }
   }, [bienBanId])
+
+  useEffect(() => {
+    const fetchGoiY = async () => {
+      if (isKeToan && bienBanId && bienBan && bienBan.trang_thai === 'ChoXacNhan' && !goiYTyLe) {
+        try {
+          const gyRes = await getGoiYTyLe(bienBanId)
+          if (gyRes.success) {
+            setGoiYTyLeState(gyRes.data)
+            if (bienBan.ty_le_hoan_coc === null) {
+              setTyLeHoanCoc(gyRes.data.ty_le_goi_y)
+            }
+          }
+        } catch (gyErr) {
+          console.error('Lỗi lấy gợi ý tỷ lệ hoàn cọc:', gyErr)
+        }
+      }
+    }
+    fetchGoiY()
+  }, [isKeToan, bienBanId, bienBan, goiYTyLe])
 
   // Real-time cost preview for Step 2
   const soTienCocGoc = Number(bienBan?.so_tien_coc_goc || 0)
@@ -280,7 +301,7 @@ export default function TraPhong() {
       <div className="layout">
         <Sidebar />
         <div className="main">
-          <Header title="Trả phòng & Thanh lý" />
+          <Header title="Trả phòng" />
           <div style={{ textAlign: 'center', padding: '100px 0' }}>
             <div className="spinner" style={{ margin: '0 auto 16px auto' }}></div>
             <p>Đang tải dữ liệu hồ sơ trả phòng...</p>
@@ -318,7 +339,7 @@ export default function TraPhong() {
                 }}>
                   {activeStep > 1 ? '✓' : '1'}
                 </div>
-                <div style={{ fontSize: '13px', fontWeight: activeStep === 1 ? 600 : 400 }}>Đối soát tài sản</div>
+                <div style={{ fontSize: '13px', fontWeight: activeStep === 1 ? 600 : 400 }}>Kiểm tra phòng khi trả</div>
                 <div style={{ fontSize: '11px', color: 'var(--gray-500)' }}>Quản lý</div>
               </div>
 
@@ -336,7 +357,7 @@ export default function TraPhong() {
                 }}>
                   {activeStep > 2 ? '✓' : '2'}
                 </div>
-                <div style={{ fontSize: '13px', fontWeight: activeStep === 2 ? 600 : 400 }}>Khấu trừ chi phí</div>
+                <div style={{ fontSize: '13px', fontWeight: activeStep === 2 ? 600 : 400 }}>Tính tiền hoàn cọc</div>
                 <div style={{ fontSize: '11px', color: 'var(--gray-500)' }}>Kế toán</div>
               </div>
 
@@ -372,7 +393,7 @@ export default function TraPhong() {
                 }}>
                   {bienBan.trang_thai === 'DaThanhLy' ? '✓' : '4'}
                 </div>
-                <div style={{ fontSize: '13px', fontWeight: activeStep === 4 ? 600 : 400 }}>Thanh lý hợp đồng</div>
+                <div style={{ fontSize: '13px', fontWeight: activeStep === 4 ? 600 : 400 }}>Kết thúc hợp đồng</div>
                 <div style={{ fontSize: '11px', color: 'var(--gray-500)' }}>Quản lý</div>
               </div>
 
@@ -541,6 +562,42 @@ export default function TraPhong() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <div className="form-group">
                       <label className="form-label" style={{ fontWeight: 600 }}>Tỷ lệ hoàn cọc (%):</label>
+                      
+                      {goiYTyLe && (
+                        <div style={{ 
+                          background: '#eff6ff', 
+                          border: '1px solid #bfdbfe', 
+                          padding: '10px 14px', 
+                          borderRadius: '6px', 
+                          color: '#1e40af', 
+                          marginBottom: '12px',
+                          fontSize: '13px'
+                        }}>
+                          📌 <strong>Gợi ý từ hệ thống: {goiYTyLe.ty_le_goi_y}%</strong> ({goiYTyLe.ly_do})
+                          {goiYTyLe.so_thang_luu_tru !== null && ` - Đã lưu trú: ${goiYTyLe.so_thang_luu_tru} tháng`}
+                          {tyLeHoanCoc !== goiYTyLe.ty_le_goi_y && (
+                            <button
+                              type="button"
+                              onClick={() => setTyLeHoanCoc(goiYTyLe.ty_le_goi_y)}
+                              style={{
+                                display: 'block',
+                                marginTop: '6px',
+                                background: '#3b82f6',
+                                color: 'white',
+                                border: 'none',
+                                padding: '4px 8px',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '11px',
+                                fontWeight: 'bold'
+                              }}
+                            >
+                              Áp dụng gợi ý
+                            </button>
+                          )}
+                        </div>
+                      )}
+
                       <input
                         type="number"
                         className="form-control"
@@ -551,7 +608,7 @@ export default function TraPhong() {
                         disabled={!isKeToan || bienBan.trang_thai !== 'ChoXacNhan'}
                       />
                       <span style={{ fontSize: '12px', color: 'var(--gray-400)', display: 'block', marginTop: '4px' }}>
-                        💡 <em>Gợi ý: 100% nếu đúng hạn và không vi phạm; giảm hoặc 0% nếu phá vỡ hợp đồng.</em>
+                        💡 <em>Tỷ lệ hoàn cọc tự động tính dựa trên thời gian lưu trú và trạng thái hợp đồng. Có thể sửa đổi thủ công nếu cần.</em>
                       </span>
                     </div>
 

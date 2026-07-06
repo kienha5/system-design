@@ -170,5 +170,28 @@ export const bienBanTraPhongController = {
         }
       })
     }
+  },
+
+  /**
+   * Get suggested deposit refund rate based on business rules.
+   */
+  async getGoiYTyLe(req, res) {
+    const { id } = req.params
+
+    try {
+      const result = await bienBanTraPhongService.getGoiYTyLe(id)
+      res.json({
+        success: true,
+        data: result
+      })
+    } catch (err) {
+      res.status(err.status || 500).json({
+        success: false,
+        error: {
+          code: err.code || 'SYSTEM_ERROR',
+          message: err.message
+        }
+      })
+    }
   }
 }

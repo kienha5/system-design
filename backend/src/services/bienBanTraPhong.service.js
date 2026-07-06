@@ -241,6 +241,25 @@ export const bienBanTraPhongService = {
     `
     const so_tien_coc = Number(depositSheet?.so_tien_coc || 0)
 
+    // Check if the accountant is overriding the suggested rate
+    const [row] = await client`
+      SELECT 
+        bbtp.ngay_tra_thuc_te,
+        hd.ngay_ky,
+        hd.ngay_bat_dau,
+        hd.ngay_ket_thuc
+      FROM bien_ban_tra_phong bbtp
+      JOIN hop_dong hd ON hd.id = bbtp.hop_dong_id
+      WHERE bbtp.id = ${id}
+    `
+    if (row) {
+      const ngayTra = row.ngay_tra_thuc_te || new Date()
+      const tyLeGoiY = tinhTyLeHoanCocGoiY(row, ngayTra)
+      if (tyLeGoiY !== ty_le_hoan_coc) {
+        console.log(`[DEBUG] Kế toán override tỷ lệ hoàn cọc từ gợi ý ${tyLeGoiY}% thành ${ty_le_hoan_coc}% cho biên bản ${id}`)
+      }
+    }
+
     // 3. Compute costs & balances
     const chi_phi_phat_sinh_tong = tien_thue_con_no 
                                   + tien_dien_nuoc_dich_vu 
@@ -377,6 +396,46 @@ export const bienBanTraPhongService = {
   },
 
   /**
+   * Get suggested deposit refund rate based on business rules (UC14).
+   */
+  async getGoiYTyLe(bienBanId) {
+    const [row] = await sql`
+      SELECT
+        bbtp.id,
+        bbtp.hop_dong_id,
+        bbtp.ngay_tra_thuc_te,
+        hd.ngay_ky,
+        hd.ngay_bat_dau,
+        hd.ngay_ket_thuc
+      FROM bien_ban_tra_phong bbtp
+      JOIN hop_dong hd ON hd.id = bbtp.hop_dong_id
+      WHERE bbtp.id = ${bienBanId}
+    `
+
+    if (!row) {
+      const err = new Error('Không tìm thấy biên bản trả phòng.')
+      err.code = 'NOT_FOUND'
+      err.status = 404
+      throw err
+    }
+
+    const ngayTra = row.ngay_tra_thuc_te || new Date()
+    const tyLe = tinhTyLeHoanCocGoiY(row, ngayTra)
+
+    let soThangLuuTru = null
+    if (row.ngay_bat_dau) {
+      const soNgay = (new Date(ngayTra) - new Date(row.ngay_bat_dau)) / (1000 * 60 * 60 * 24)
+      soThangLuuTru = Math.floor(soNgay / 30)
+    }
+
+    return {
+      ty_le_goi_y: tyLe,
+      so_thang_luu_tru: soThangLuuTru,
+      ly_do: tinhLyDoHoanCoc(tyLe)
+    }
+  },
+
+  /**
    * Get a checkout report by contract ID.
    * 
    * @param {string} hopDongId - Contract UUID
@@ -390,4 +449,48 @@ export const bienBanTraPhongService = {
     `
     return bbt || null
   }
+}
+
+/**
+ * Tính tỷ lệ hoàn cọc gợi ý theo quy định đề bài CSC12004.
+ */
+function tinhTyLeHoanCocGoiY(hopDong, ngayTra) {
+  const ngayTraDate = new Date(ngayTra)
+
+  // Case 1: chưa có HĐ (hop_dong null hoặc chưa có ngay_ky)
+  if (!hopDong || !hopDong.ngay_ky) {
+    return 80
+  }
+
+  // Case 4: hết hạn HĐ
+  if (hopDong.ngay_ket_thuc) {
+    const ngayKetThuc = new Date(hopDong.ngay_ket_thuc)
+    if (ngayTraDate >= ngayKetThuc) {
+      return 100
+    }
+  }
+
+  // Tính số tháng lưu trú (từ ngay_bat_dau đến ngay_tra)
+  const ngayBatDau = new Date(hopDong.ngay_bat_dau)
+  const soNgayLuuTru = (ngayTraDate - ngayBatDau) / (1000 * 60 * 60 * 24)
+  const soThangLuuTru = soNgayLuuTru / 30
+
+  // Case 3: > 6 tháng
+  if (soThangLuuTru > 6) {
+    return 70
+  }
+
+  // Case 2: <= 6 tháng
+  return 50
+}
+
+/**
+ * Helper giải thích lý do để hiển thị trên FE
+ */
+function tinhLyDoHoanCoc(tyLe) {
+  if (tyLe === 80) return 'Chưa ký hợp đồng thuê'
+  if (tyLe === 100) return 'Hết hạn hợp đồng thuê'
+  if (tyLe === 70) return 'Đã ký HĐ, lưu trú trên 6 tháng'
+  if (tyLe === 50) return 'Đã ký HĐ, lưu trú dưới 6 tháng'
+  return ''
 }

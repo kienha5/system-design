@@ -82,11 +82,11 @@ export default function TiepNhanYeuCau() {
           setStep('show_modal')
         } else {
           // Sang bước chọn phòng
-          setToast({ type: 'success', message: 'Tạo yêu cầu thuê thành công!' })
+          setToast({ type: 'success', message: 'Đăng ký thông tin khách mới thành công!' })
           setStep('select_room')
         }
       } else {
-        setToast({ type: 'danger', message: res.error?.message || 'Không thể tạo yêu cầu thuê.' })
+        setToast({ type: 'danger', message: res.error?.message || 'Không thể đăng ký thông tin khách mới.' })
       }
     } catch (err) {
       setToast({ type: 'danger', message: err.message || 'Lỗi hệ thống.' })
@@ -121,11 +121,11 @@ export default function TiepNhanYeuCau() {
       <Sidebar />
       
       <div className="main">
-        <Header title="Tiếp nhận yêu cầu thuê" />
+        <Header title="Đăng ký khách mới" />
         
         <div className="content">
           <div className="page-header">
-            <h1 className="page-title">Tiếp nhận yêu cầu</h1>
+            <h1 className="page-title">Đăng ký khách mới</h1>
             <p className="page-subtitle">Đăng ký thông tin khách hàng và tiêu chí tìm phòng để hệ thống hỗ trợ lọc phòng phù hợp.</p>
           </div>
 
@@ -349,7 +349,7 @@ export default function TiepNhanYeuCau() {
                   className="btn btn-primary"
                   disabled={loading}
                 >
-                  {loading ? 'Đang tiếp nhận...' : 'Tiếp nhận yêu cầu ➔'}
+                  {loading ? 'Đang đăng ký...' : 'Đăng ký khách mới ➔'}
                 </button>
               </div>
             </form>
@@ -369,7 +369,7 @@ export default function TiepNhanYeuCau() {
                     <strong>Số điện thoại:</strong> {customer.so_dien_thoai}
                   </div>
                   <p style={{ color: 'var(--gray-600)', fontSize: '13px' }}>
-                    Yêu cầu thuê mới này sẽ tự động liên kết với hồ sơ khách hàng hiện tại để tránh tạo trùng lắp dữ liệu.
+                    Đăng ký mới này sẽ tự động liên kết với hồ sơ khách hàng hiện tại để tránh tạo trùng lắp dữ liệu.
                   </p>
                 </div>
                 <div className="modal-actions">

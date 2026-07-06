@@ -219,15 +219,15 @@ export default function GhiNhanDatCoc() {
       <Sidebar />
       
       <div className="main">
-        <Header title={isQuanLy ? "Phê duyệt Đặt cọc Giữ chỗ" : "Ghi nhận Đặt cọc Giữ chỗ"} />
+        <Header title={isQuanLy ? "Quản lý trạng thái phòng" : "Xác nhận thanh toán cọc"} />
         
         <div className="content">
           <div className="page-header">
-            <h1 className="page-title">{isQuanLy ? "Duyệt chứng từ đặt cọc" : "Cập nhật chứng từ chuyển khoản"}</h1>
+            <h1 className="page-title">{isQuanLy ? "Quản lý trạng thái phòng" : "Xác nhận thanh toán cọc"}</h1>
             <p className="page-subtitle">
               {isQuanLy 
-                ? "Danh sách các phiếu đặt cọc đang chờ quản lý phê duyệt chứng từ giao dịch để kích hoạt trạng thái giữ phòng."
-                : "Tra cứu các phiếu đặt cọc mới lập, tải lên hóa đơn/biên lai chuyển khoản trước khi hết hạn 24 giờ."
+                ? "Danh sách các phiếu giữ phòng đang chờ quản lý phê duyệt chứng từ giao dịch để kích hoạt trạng thái giữ phòng."
+                : "Tra cứu các phiếu giữ phòng mới lập, tải lên hóa đơn/biên lai chuyển khoản trước khi hết hạn 24 giờ."
               }
             </p>
           </div>

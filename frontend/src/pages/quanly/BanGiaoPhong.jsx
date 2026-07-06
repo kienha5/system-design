@@ -216,7 +216,7 @@ export default function BanGiaoPhong() {
       <Sidebar />
       
       <div className="main">
-        <Header title="Bàn Giao Phòng & Nhận Phòng" />
+        <Header title="Giao phòng cho khách" />
         
         <div className="content">
           {/* Step Progress Indicator */}
@@ -244,9 +244,9 @@ export default function BanGiaoPhong() {
           ) : hopDongId === 'select' ? (
             <div className="card" style={{ textAlign: 'center', padding: '48px', color: 'var(--gray-400)' }}>
               <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔑</div>
-              <h3>Nghiệp vụ Bàn Giao Phòng</h3>
+              <h3>Nghiệp vụ Giao phòng cho khách</h3>
               <p style={{ fontSize: '14px', maxWidth: '400px', margin: '8px auto 0 auto' }}>
-                Bàn giao phòng được thực hiện sau khi hợp đồng thuê có hiệu lực và Kế toán đã thu đủ tiền phòng kỳ đầu.
+                Giao phòng cho khách được thực hiện sau khi hợp đồng thuê có hiệu lực và Kế toán đã thu đủ tiền phòng tháng đầu.
               </p>
               <button className="btn btn-outline" onClick={() => navigate('/dashboard-quan-ly')} style={{ marginTop: '20px' }}>
                 🏠 Về Dashboard Quản lý
@@ -265,14 +265,14 @@ export default function BanGiaoPhong() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--gray-200)', paddingBottom: '12px' }}>
                     <div>
                       <h2 style={{ fontSize: '18px', color: 'var(--gray-800)', margin: 0 }}>
-                        Bước 1: Đối soát & Ghi nhận tài sản phòng {contract.ma_phong}
+                        Bước 1: Kiểm tra tài sản phòng {contract.ma_phong}
                       </h2>
                       <p style={{ fontSize: '12px', color: 'var(--gray-500)', marginTop: '2px' }}>
                         Hợp đồng: <strong>{contract.ma_hop_dong}</strong> | Vị trí: <strong>Phòng {contract.ma_phong}</strong>
                       </p>
                     </div>
                     <span className="badge status-pending" style={{ fontSize: '12px', padding: '6px 12px' }}>
-                      {bienBan ? 'Đã lưu biên bản' : 'Chưa lập biên bản'}
+                      {bienBan ? 'Đã lưu biên bản nhận phòng' : 'Chưa lập biên bản nhận phòng'}
                     </span>
                   </div>
 
@@ -381,7 +381,7 @@ export default function BanGiaoPhong() {
                   {/* Left: Checklist summary (readonly) */}
                   <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <h3 style={{ color: 'var(--gray-800)', borderBottom: '1px solid var(--gray-200)', paddingBottom: '8px', margin: 0 }}>
-                      📋 Tóm tắt biên bản hiện trạng bàn giao
+                      📋 Tóm tắt biên bản nhận phòng
                     </h3>
 
                     <div><strong>Mã biên bản:</strong> {bienBan.ma_bien_ban}</div>
@@ -420,7 +420,7 @@ export default function BanGiaoPhong() {
                   <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '20px' }}>
                     <div>
                       <h3 style={{ color: 'var(--gray-800)', borderBottom: '1px solid var(--gray-200)', paddingBottom: '8px', margin: 0, marginBottom: '16px' }}>
-                        ✍️ Ký xác nhận bàn giao
+                        ✍️ Ký xác nhận giao phòng
                       </h3>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -452,7 +452,7 @@ export default function BanGiaoPhong() {
                               onChange={(e) => setAgreeHandover(e.target.checked)} 
                               style={{ marginTop: '3px' }}
                             />
-                            <span>Tôi xác nhận khách hàng đã trực tiếp kiểm tra thực tế, ký biên bản giấy, đồng ý nhận bàn giao chìa khóa và bắt đầu thời gian cư trú chính thức tại Homestay Dorm.</span>
+                            <span>Tôi xác nhận khách hàng đã trực tiếp kiểm tra thực tế, ký biên bản giấy, đồng ý nhận chìa khóa và bắt đầu thời gian cư trú chính thức tại Homestay Dorm.</span>
                           </label>
                         </div>
                       </div>
@@ -473,7 +473,7 @@ export default function BanGiaoPhong() {
                         disabled={actionLoading || !agreeHandover}
                         style={{ flex: 1, background: 'var(--success)', borderColor: 'var(--success)' }}
                       >
-                        {actionLoading ? 'Đang hoàn tất...' : '✅ Hoàn tất Bàn giao'}
+                        {actionLoading ? 'Đang hoàn tất...' : '✅ Hoàn tất giao phòng'}
                       </button>
                     </div>
                   </div>
@@ -488,7 +488,7 @@ export default function BanGiaoPhong() {
                   </div>
                   
                   <div>
-                    <h1 style={{ fontSize: '22px', color: 'var(--gray-800)', margin: 0 }}>Bàn giao phòng hoàn tất!</h1>
+                    <h1 style={{ fontSize: '22px', color: 'var(--gray-800)', margin: 0 }}>Giao phòng cho khách hoàn tất!</h1>
                     <p style={{ fontSize: '14px', color: 'var(--success-dark, #15803d)', fontWeight: 'bold', marginTop: '8px', background: '#dcfce7', padding: '10px 16px', borderRadius: '8px' }}>
                       🎉 Khách hàng chính thức bắt đầu cư trú. Trạng thái phòng/giường đã chuyển sang Đang Thuê.
                     </p>

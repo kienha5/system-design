@@ -8,7 +8,9 @@
 backend/node_modules/
 frontend/node_modules/
 
-docs/
+docs/*
+!docs/**/*.md
+!docs/**/*.sql
 ui-mockup/
 .agent/
 .claude/

@@ -32,7 +32,7 @@ export default function Sidebar() {
       
       {isSale && (
         <>
-          <div className="menu-title">
+          <div className="sidebar-section-title">
             Nghiệp vụ Sale
           </div>
           <ul className="sidebar-menu">
@@ -41,7 +41,7 @@ export default function Sidebar() {
                 to="/dashboard-sale" 
                 className={isActive('/dashboard-sale') ? 'active' : ''}
               >
-                🏠 Dashboard Sale
+                🏠 Tổng quan
               </Link>
             </li>
             <li>
@@ -49,7 +49,7 @@ export default function Sidebar() {
                 to="/tiep-nhan-yeu-cau" 
                 className={isActive('/tiep-nhan-yeu-cau') || location.pathname.startsWith('/dat-lich-xem-phong') ? 'active' : ''}
               >
-                📋 Tiếp nhận yêu cầu
+                👤 Đăng ký khách mới
               </Link>
             </li>
             <li>
@@ -57,7 +57,7 @@ export default function Sidebar() {
                 to="/lap-phieu-dat-coc" 
                 className={isActive('/lap-phieu-dat-coc') ? 'active' : ''}
               >
-                📝 Lập phiếu đặt cọc
+                🔑 Giữ phòng
               </Link>
             </li>
             <li>
@@ -65,7 +65,7 @@ export default function Sidebar() {
                 to="/ghi-nhan-dat-coc" 
                 className={isActive('/ghi-nhan-dat-coc') ? 'active' : ''}
               >
-                💰 Ghi nhận đặt cọc
+                ✅ Xác nhận thanh toán cọc
               </Link>
             </li>
             <li>
@@ -73,7 +73,7 @@ export default function Sidebar() {
                 to="/dang-ky-tra-phong" 
                 className={isActive('/dang-ky-tra-phong') ? 'active' : ''}
               >
-                🚪 Đăng ký trả phòng
+                🚪 Trả phòng
               </Link>
             </li>
           </ul>
@@ -82,7 +82,7 @@ export default function Sidebar() {
 
       {isQuanLy && (
         <>
-          <div className="menu-title">
+          <div className="sidebar-section-title">
             Nghiệp vụ Quản Lý
           </div>
           <ul className="sidebar-menu">
@@ -91,15 +91,7 @@ export default function Sidebar() {
                 to="/dashboard-quan-ly" 
                 className={isActive('/dashboard-quan-ly') ? 'active' : ''}
               >
-                🏠 Dashboard Quản Lý
-              </Link>
-            </li>
-            <li>
-              <Link 
-                to="/ghi-nhan-dat-coc" 
-                className={isActive('/ghi-nhan-dat-coc') ? 'active' : ''}
-              >
-                💰 Xác nhận đặt cọc
+                🏠 Tổng quan
               </Link>
             </li>
             <li>
@@ -107,13 +99,8 @@ export default function Sidebar() {
                 to="/lap-hop-dong" 
                 className={isActive('/lap-hop-dong') ? 'active' : ''}
               >
-                ✍️ Lập hợp đồng thuê
+                📋 Ký hợp đồng
               </Link>
-            </li>
-            <li>
-              <a href="#" className="disabled" onClick={(e) => e.preventDefault()}>
-                💳 Thanh toán kỳ đầu
-              </a>
             </li>
             <li>
               <Link 
@@ -121,7 +108,7 @@ export default function Sidebar() {
                 className={location.pathname.startsWith('/ban-giao-phong') ? 'active' : 'disabled'}
                 onClick={(e) => { if (!location.pathname.startsWith('/ban-giao-phong')) e.preventDefault() }}
               >
-                🏠 Bàn giao phòng
+                🏠 Giao phòng cho khách
               </Link>
             </li>
             <li>
@@ -130,7 +117,24 @@ export default function Sidebar() {
                 className={location.pathname.startsWith('/tra-phong') ? 'active' : 'disabled'}
                 onClick={(e) => { if (!location.pathname.startsWith('/tra-phong')) e.preventDefault() }}
               >
-                🚪 Trả phòng & thanh lý
+                🔍 Kiểm tra phòng khi trả
+              </Link>
+            </li>
+            <li>
+              <Link 
+                to="#" 
+                className={location.pathname.startsWith('/tra-phong') ? 'active' : 'disabled'}
+                onClick={(e) => { if (!location.pathname.startsWith('/tra-phong')) e.preventDefault() }}
+              >
+                📄 Kết thúc hợp đồng
+              </Link>
+            </li>
+            <li>
+              <Link 
+                to="/ghi-nhan-dat-coc" 
+                className={isActive('/ghi-nhan-dat-coc') ? 'active' : ''}
+              >
+                🏢 Quản lý trạng thái phòng
               </Link>
             </li>
           </ul>
@@ -139,7 +143,7 @@ export default function Sidebar() {
 
       {isKeToan && (
         <>
-          <div className="menu-title">
+          <div className="sidebar-section-title">
             Nghiệp vụ Kế Toán
           </div>
           <ul className="sidebar-menu">
@@ -148,7 +152,7 @@ export default function Sidebar() {
                 to="/dashboard-ke-toan" 
                 className={isActive('/dashboard-ke-toan') ? 'active' : ''}
               >
-                🏠 Dashboard Kế Toán
+                🏠 Tổng quan
               </Link>
             </li>
             <li>
@@ -157,7 +161,7 @@ export default function Sidebar() {
                 className={location.pathname.startsWith('/thanh-toan-ky-dau') ? 'active' : 'disabled'}
                 onClick={(e) => { if (!location.pathname.startsWith('/thanh-toan-ky-dau')) e.preventDefault() }}
               >
-                💳 Thanh toán kỳ đầu
+                💰 Thu tiền tháng đầu
               </Link>
             </li>
             <li>
@@ -166,7 +170,7 @@ export default function Sidebar() {
                 className={location.pathname.startsWith('/tra-phong') ? 'active' : 'disabled'}
                 onClick={(e) => { if (!location.pathname.startsWith('/tra-phong')) e.preventDefault() }}
               >
-                🧾 Khấu trừ chi phí
+                🧾 Tính tiền hoàn cọc
               </Link>
             </li>
           </ul>

@@ -144,9 +144,9 @@ export default function ThanhToanKyDau() {
           ) : hopDongId === 'select' ? (
             <div className="card" style={{ textAlign: 'center', padding: '48px', color: 'var(--gray-400)' }}>
               <div style={{ fontSize: '48px', marginBottom: '16px' }}>💳</div>
-              <h3>Nghiệp vụ Thu Tiền Kỳ Đầu</h3>
+              <h3>Nghiệp vụ Thu Tiền Tháng Đầu</h3>
               <p style={{ fontSize: '14px', maxWidth: '400px', margin: '8px auto 0 auto' }}>
-                Tiến trình thanh toán kỳ đầu được kích hoạt từ flow quản lý sau khi lập hợp đồng. Vui lòng quay lại danh sách hoặc yêu cầu Quản lý dẫn link thực hiện.
+                Tiến trình thu tiền tháng đầu được kích hoạt từ flow quản lý sau khi lập hợp đồng. Vui lòng quay lại danh sách hoặc yêu cầu Quản lý dẫn link thực hiện.
               </p>
               <button className="btn btn-outline" onClick={() => navigate('/dashboard-ke-toan')} style={{ marginTop: '20px' }}>
                 🏠 Về Dashboard Kế toán
@@ -353,7 +353,7 @@ export default function ThanhToanKyDau() {
                         lineHeight: '1.5'
                       }}
                     >
-                      📢 Thanh toán hoàn tất. Vui lòng thông báo Quản lý tiến hành bàn giao phòng.
+                      📢 Thu tiền tháng đầu hoàn tất. Vui lòng thông báo Quản lý tiến hành giao phòng cho khách.
                     </div>
                   </div>
 

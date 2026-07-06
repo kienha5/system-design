@@ -394,6 +394,27 @@ export const nhuCauThueService = {
       WHERE kh.so_dien_thoai = ${soDienThoai}
       ORDER BY nct.created_at DESC
     `
+  },
+
+  async list({ trang_thai, limit = 10 }, tx) {
+    const client = tx || sql
+    return await client`
+      SELECT 
+        nct.id,
+        nct.trang_thai,
+        nct.so_nguoi,
+        nct.loai_phong_yeu_cau,
+        nct.phong_du_kien_id,
+        nct.created_at,
+        kh.ho_ten,
+        kh.so_dien_thoai,
+        kh.email
+      FROM nhu_cau_thue nct
+      JOIN khach_hang kh ON nct.khach_hang_id = kh.id
+      WHERE nct.trang_thai = ${trang_thai}
+      ORDER BY nct.created_at DESC
+      LIMIT ${limit}
+    `
   }
 }
 

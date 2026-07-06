@@ -1,36 +1,57 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Sidebar from '../../components/shared/Sidebar'
 import Header from '../../components/shared/Header'
 import Toast from '../../components/shared/Toast'
+import { getThongKeKeToan } from '../../api/thongKe.api'
 
 export default function DashboardKeToan() {
   const navigate = useNavigate()
   const [toast, setToast] = useState(null)
+  const [stats, setStats] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type })
   }
 
-  // Sample tasks list for Accountant
+  useEffect(() => {
+    getThongKeKeToan()
+      .then(res => {
+        setStats(res.data)
+        setLoading(false)
+      })
+      .catch(err => {
+        console.error('Lỗi khi tải thống kê Kế toán:', err)
+        setError(true)
+        setLoading(false)
+      })
+  }, [])
+
+  // Sample tasks list for Accountant (using friendly terms)
   const accountantTasks = [
     {
       id: 1,
-      task: 'Thu tiền phòng kỳ đầu',
-      desc: 'Hợp đồng HD000001 đã có hiệu lực, cần lập hóa đơn và thu tiền phòng kỳ đầu trước khi bàn giao phòng.',
+      task: 'Thu tiền tháng đầu',
+      desc: 'Hợp đồng mới đã có hiệu lực, cần lập hóa đơn và thu tiền phòng tháng đầu trước khi bàn giao phòng.',
       priority: 'Cao',
       status: 'Chờ',
-      link: '/thanh-toan-ky-dau/select' // We'll handle a selector if they go from here, or simple info
+      link: '/dashboard-ke-toan'
     },
     {
       id: 2,
-      task: 'Xác nhận chuyển khoản',
-      desc: 'Hóa đơn HD000002 của phòng P102 báo đã chuyển khoản thành công, cần đối chiếu giao dịch ngân hàng.',
+      task: 'Tính tiền hoàn cọc',
+      desc: 'Biên bản trả phòng mới được xác nhận, cần tính toán khấu trừ tài sản và hoàn trả tiền cọc cho khách.',
       priority: 'Cao',
       status: 'Chờ',
       link: '/dashboard-ke-toan'
     }
   ]
+
+  const formatVND = (value) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value || 0)
+  }
 
   return (
     <div className="layout">
@@ -42,26 +63,58 @@ export default function DashboardKeToan() {
         <div className="content">
           <div className="page-header">
             <h1 className="page-title">Tổng quan Nghiệp vụ Kế toán</h1>
-            <p className="page-subtitle">Hệ thống quản lý tài chính, lập hóa đơn định kỳ, thu tiền phòng kỳ đầu và đối soát công nợ.</p>
+            <p className="page-subtitle">Hệ thống quản lý tài chính, lập hóa đơn định kỳ, thu tiền phòng tháng đầu và đối soát công nợ.</p>
           </div>
 
           {/* Stats Grid */}
           <div className="stats-grid">
-            <div className="card stat-card" style={{ '--primary': '#10b981' }}>
+            <div className="card stat-card stat-card-danger">
+              <h4>Hóa đơn chưa thanh toán</h4>
+              <h2>
+                {loading ? (
+                  <span style={{ fontSize: '16px', color: 'var(--gray-400)' }}>Đang tải...</span>
+                ) : error ? (
+                  '-'
+                ) : (
+                  stats?.hoa_don_cho_thanh_toan ?? 0
+                )}
+              </h2>
+            </div>
+            <div className="card stat-card stat-card-success">
+              <h4>Đã thu tháng này</h4>
+              <h2>
+                {loading ? (
+                  <span style={{ fontSize: '16px', color: 'var(--gray-400)' }}>Đang tải...</span>
+                ) : error ? (
+                  '-'
+                ) : (
+                  stats?.hoa_don_thang_nay ?? 0
+                )}
+              </h2>
+            </div>
+            <div className="card stat-card stat-card-primary">
               <h4>Doanh thu tháng này</h4>
-              <h2>78.5 Mđ</h2>
+              <h2>
+                {loading ? (
+                  <span style={{ fontSize: '16px', color: 'var(--gray-400)' }}>Đang tải...</span>
+                ) : error ? (
+                  '-'
+                ) : (
+                  formatVND(stats?.doanh_thu_thang_nay)
+                )}
+              </h2>
             </div>
-            <div className="card stat-card" style={{ '--primary': '#f59e0b' }}>
-              <h4>Hóa đơn chờ thu</h4>
-              <h2>4</h2>
-            </div>
-            <div className="card stat-card" style={{ '--primary': '#3b82f6' }}>
-              <h4>Tỷ lệ thu hồi nợ</h4>
-              <h2>94.2%</h2>
-            </div>
-            <div className="card stat-card" style={{ '--primary': '#ef4444' }}>
-              <h4>Hóa đơn quá hạn</h4>
-              <h2>1</h2>
+            <div className="card stat-card stat-card-warning">
+              <h4>Chờ tính hoàn cọc</h4>
+              <h2>
+                {loading ? (
+                  <span style={{ fontSize: '16px', color: 'var(--gray-400)' }}>Đang tải...</span>
+                ) : error ? (
+                  '-'
+                ) : (
+                  stats?.bien_ban_cho_khau_tru ?? 0
+                )}
+              </h2>
             </div>
           </div>
 
@@ -97,7 +150,7 @@ export default function DashboardKeToan() {
             <table className="room-table">
               <thead>
                 <tr>
-                  <th>Nghiệp vụ</th>
+                  <th>Nhiệm vụ</th>
                   <th>Mô tả chi tiết</th>
                   <th>Độ ưu tiên</th>
                   <th>Trạng thái</th>
@@ -126,23 +179,14 @@ export default function DashboardKeToan() {
                       </span>
                     </td>
                     <td>
-                      {item.link === '/dashboard-ke-toan' ? (
-                        <button 
-                          className="btn btn-outline btn-sm"
-                          onClick={() => alert('Đối chiếu thành công! Đang xử lý giao dịch.')}
-                        >
-                          Đối chiếu ➔
-                        </button>
-                      ) : (
-                        <button 
-                          className="btn btn-primary btn-sm"
-                          onClick={() => {
-                            alert('Vui lòng truy cập từ danh sách Hợp đồng của Quản lý hoặc Sale để thực hiện thanh toán kỳ đầu cho từng hợp đồng cụ thể.')
-                          }}
-                        >
-                          Xử lý ➔
-                        </button>
-                      )}
+                      <button 
+                        className="btn btn-primary btn-sm"
+                        onClick={() => {
+                          showToast('Vui lòng thực hiện tác vụ này từ danh sách tương ứng của Quản lý hoặc Sale.', 'warning')
+                        }}
+                      >
+                        Xử lý ➔
+                      </button>
                     </td>
                   </tr>
                 ))}

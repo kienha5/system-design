@@ -1,44 +1,93 @@
 import jwt from 'jsonwebtoken'
-import { authService } from '../services/auth.service.js'
+import sql from '../db.js'
+import 'dotenv/config'
+import crypto from 'crypto'
 
-/**
- * Middleware to authenticate requests using Supabase JWT offline.
- */
-export const authenticate = async (req, res, next) => {
+let jwksCache = null
+let jwksFetchTime = 0
+const CACHE_TTL = 24 * 60 * 60 * 1000 // 24 hours caching for public keys
+
+async function getPublicKeyFromJWKS(kid) {
+  const now = Date.now()
+  if (!jwksCache || now - jwksFetchTime > CACHE_TTL) {
+    try {
+      const jwksUrl = `${process.env.SUPABASE_URL}/auth/v1/.well-known/jwks.json`
+      const res = await fetch(jwksUrl)
+      if (!res.ok) {
+        throw new Error(`Failed to fetch JWKS: ${res.statusText}`)
+      }
+      jwksCache = await res.json()
+      jwksFetchTime = now
+    } catch (err) {
+      console.error('[AUTH] Failed to fetch/refresh JWKS:', err)
+      if (!jwksCache) throw err
+    }
+  }
+
+  const key = jwksCache.keys.find(k => k.kid === kid)
+  if (!key) {
+    // Force one refresh if key is not found
+    const jwksUrl = `${process.env.SUPABASE_URL}/auth/v1/.well-known/jwks.json`
+    const res = await fetch(jwksUrl)
+    if (res.ok) {
+      jwksCache = await res.json()
+      jwksFetchTime = now
+    }
+    const refetchedKey = jwksCache.keys.find(k => k.kid === kid)
+    if (!refetchedKey) {
+      throw new Error(`Public key with kid ${kid} not found in JWKS`)
+    }
+    return crypto.createPublicKey({ format: 'jwk', key: refetchedKey })
+  }
+
+  return crypto.createPublicKey({ format: 'jwk', key: key })
+}
+
+export async function authenticate(req, res, next) {
   try {
     const authHeader = req.headers.authorization
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
         success: false,
-        error: {
-          code: 'UNAUTHORIZED',
-          message: 'Token xác thực không được cung cấp hoặc sai định dạng.'
-        }
+        error: { code: 'UNAUTHORIZED', message: 'Thiếu token xác thực.' }
       })
     }
 
     const token = authHeader.split(' ')[1]
-    
-    if (!process.env.SUPABASE_JWT_SECRET) {
-      return res.status(500).json({
+
+    // Decode token to inspect signature algorithm
+    const decoded = jwt.decode(token, { complete: true })
+    if (!decoded) {
+      return res.status(401).json({
         success: false,
-        error: {
-          code: 'SYSTEM_ERROR',
-          message: 'SUPABASE_JWT_SECRET chưa được cấu hình ở backend.'
-        }
+        error: { code: 'UNAUTHORIZED', message: 'Token xác thực không hợp lệ.' }
       })
     }
 
+    const algorithm = decoded.header.alg
+    let verificationKey
+
+    if (algorithm === 'ES256') {
+      verificationKey = await getPublicKeyFromJWKS(decoded.header.kid)
+    } else {
+      verificationKey = process.env.SUPABASE_JWT_SECRET
+      if (!verificationKey) {
+        return res.status(500).json({
+          success: false,
+          error: { code: 'SERVER_ERROR', message: 'Thiếu cấu hình JWT secret.' }
+        })
+      }
+    }
+
+    // Verify token signature and claims
     let payload
     try {
-      payload = jwt.verify(token, process.env.SUPABASE_JWT_SECRET)
-    } catch (err) {
+      payload = jwt.verify(token, verificationKey, { algorithms: [algorithm] })
+    } catch (jwtErr) {
+      console.warn('[AUTH] Token verification failed:', jwtErr.message)
       return res.status(401).json({
         success: false,
-        error: {
-          code: 'UNAUTHORIZED',
-          message: 'Token xác thực không hợp lệ hoặc đã hết hạn.'
-        }
+        error: { code: 'UNAUTHORIZED', message: 'Token không hợp lệ hoặc đã hết hạn.' }
       })
     }
 
@@ -46,35 +95,40 @@ export const authenticate = async (req, res, next) => {
     if (!userId) {
       return res.status(401).json({
         success: false,
-        error: {
-          code: 'UNAUTHORIZED',
-          message: 'Payload token thiếu thông tin định danh người dùng.'
-        }
+        error: { code: 'UNAUTHORIZED', message: 'Token thiếu thông tin định danh.' }
       })
     }
 
-    // Query application database for user role and branch
-    const user = await authService.getCurrentUser(userId)
-    if (!user) {
+    // Lookup user in the database
+    const [nguoiDung] = await sql`
+      SELECT id, ho_ten, vai_tro, chi_nhanh_id
+      FROM nguoi_dung_he_thong
+      WHERE id = ${userId}
+    `
+
+    if (!nguoiDung) {
       return res.status(403).json({
         success: false,
         error: {
           code: 'FORBIDDEN',
-          message: 'Tài khoản của bạn chưa được kích hoạt hoặc không tồn tại trong hệ thống.'
+          message: `Tài khoản của bạn chưa được kích hoạt hoặc không tồn tại trong hệ thống.`
         }
       })
     }
 
-    // Attach user information to request object
-    req.user = user
+    req.user = {
+      id: nguoiDung.id,
+      ho_ten: nguoiDung.ho_ten,
+      vai_tro: nguoiDung.vai_tro,
+      chi_nhanh_id: nguoiDung.chi_nhanh_id
+    }
+
     next()
   } catch (err) {
+    console.error('[AUTH] Authentication middleware unexpected error:', err)
     return res.status(500).json({
       success: false,
-      error: {
-        code: 'SYSTEM_ERROR',
-        message: 'Lỗi xác thực hệ thống.'
-      }
+      error: { code: 'SERVER_ERROR', message: 'Lỗi xác thực hệ thống.' }
     })
   }
 }
@@ -110,3 +164,4 @@ export const requireRole = (...allowedRoles) => {
     next()
   }
 }
+

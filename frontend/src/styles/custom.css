@@ -244,3 +244,51 @@
   cursor: not-allowed;
   pointer-events: none;
 }
+
+/* =========================================================================
+   UI OVERHAUL CUSTOM STYLES
+   ========================================================================= */
+
+.sidebar-menu a {
+  font-size: 14px;
+  gap: 10px;          /* khoảng cách icon và text */
+}
+
+.sidebar-section-title {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: #475569;
+  padding: 16px 16px 6px;
+  text-transform: uppercase;
+}
+
+.page-header {
+  margin-bottom: 32px;
+}
+
+.page-title {
+  font-size: 28px;    /* bớt to hơn, 32px hơi lớn */
+  font-weight: 700;
+}
+
+.stats-grid {
+  gap: 16px;
+}
+
+/* Stat card — bỏ border-left hardcode, dùng class */
+.stat-card-primary { border-left: 4px solid var(--primary) !important; }
+.stat-card-success  { border-left: 4px solid var(--success) !important; }
+.stat-card-warning  { border-left: 4px solid var(--warning) !important; }
+.stat-card-danger   { border-left: 4px solid var(--danger) !important; }
+
+/* Override card hover */
+.card:hover {
+  transform: none !important;    /* bỏ lift effect trên card thường */
+  box-shadow: var(--shadow-md) !important;
+}
+
+.shortcut-card:hover {
+  transform: translateY(-3px) !important;   /* giữ lift cho shortcut */
+  border-color: var(--primary) !important;
+}
+

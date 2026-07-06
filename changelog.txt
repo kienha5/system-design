@@ -3,6 +3,24 @@
 ========================================================================
 
 ------------------------------------------------------------------------
+Version: v0.6.0
+Date: 2026-07-06
+Description: UI Overhaul, Database Statistics Integration, & Test Scenarios Setup
+------------------------------------------------------------------------
+* UI Overhaul & Friendly Terminology
+  - Renamed technical jargon in all frontend pages (e.g. "Tiếp nhận yêu cầu" to "Đăng ký khách mới", "Lập phiếu đặt cọc" to "Giữ phòng", "Ghi nhận đặt cọc" to "Xác nhận thanh toán cọc").
+  - Polished forms and checklists across all role dashboards (Sale, Quản lý, Kế toán).
+* Real Database Statistics
+  - Implemented backend service and route endpoints (`/api/v1/thong-ke/sale`, `/api/v1/thong-ke/quan-ly`, `/api/v1/thong-ke/ke-toan`).
+  - Integrated stats API into the frontend, rendering dynamic counters for contracts, bills, checkout requests, and active rooms.
+* Automated Test Seed & Reset Scripts
+  - Created backend `seed.js` script to clear all system users and seed branches, rooms, default assets, and test customers.
+  - Implemented `reset-demo.js` script to clean transactional data before product demos.
+* Documentation and Scripting
+  - Saved standard SQL schema script `docs/create_database.sql`.
+  - Authored comprehensive end-to-end user story testing script `docs/TEST_SCENARIOS.md`.
+
+------------------------------------------------------------------------
 Version: v0.5.0
 Date: 2026-06-26
 Description: Implement UC12-UC15 Contract Termination & Room Checkout Flow

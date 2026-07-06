@@ -85,6 +85,19 @@ router.patch(
 )
 
 /**
+ * @route GET /api/v1/bien-ban-tra-phong/:id/goi-y-ty-le
+ * @desc Get suggested deposit refund rate based on business rules
+ * @access Private (KeToan only)
+ */
+router.get(
+  '/bien-ban-tra-phong/:id/goi-y-ty-le',
+  authenticate,
+  requireRole('KeToan'),
+  validateParams(uuidParamSchema),
+  bienBanTraPhongController.getGoiYTyLe
+)
+
+/**
  * @route GET /api/v1/bien-ban-tra-phong/:id
  * @desc Fetch details of a checkout report by ID
  * @access Private (Sale, QuanLy, KeToan)

@@ -137,9 +137,9 @@ export default function DatLichXemPhong() {
       <div className="layout">
         <Sidebar />
         <div className="main">
-          <Header title="Đặt lịch xem phòng" />
+          <Header title="Đăng ký khách mới" />
           <div className="content" style={{ textAlign: 'center', padding: '40px' }}>
-            Đang tải thông tin yêu cầu thuê...
+            Đang tải thông tin đăng ký...
           </div>
         </div>
       </div>
@@ -151,9 +151,9 @@ export default function DatLichXemPhong() {
       <div className="layout">
         <Sidebar />
         <div className="main">
-          <Header title="Đặt lịch xem phòng" />
+          <Header title="Đăng ký khách mới" />
           <div className="content" style={{ textAlign: 'center', padding: '40px', color: 'var(--danger)', fontWeight: 600 }}>
-            Không tìm thấy yêu cầu thuê phòng này trong hệ thống.
+            Không tìm thấy thông tin đăng ký phòng này trong hệ thống.
           </div>
         </div>
       </div>
@@ -167,7 +167,7 @@ export default function DatLichXemPhong() {
       <Sidebar />
       
       <div className="main">
-        <Header title="Đặt lịch xem phòng" />
+        <Header title="Đăng ký khách mới" />
         
         <div className="content">
           <div className="page-header">
@@ -374,14 +374,14 @@ export default function DatLichXemPhong() {
                     ✓ ĐÃ HOÀN TẤT XEM PHÒNG & XÁC NHẬN ĐẠT HIỆN TRẠNG
                   </div>
                   <p style={{ color: 'var(--gray-600)', marginBottom: '20px' }}>
-                    Khách hàng <strong>{khach_hang.ho_ten}</strong> đã đồng ý thuê. Chuyển sang bước lập phiếu đặt cọc để giữ giường cho khách.
+                    Khách hàng <strong>{khach_hang.ho_ten}</strong> đã đồng ý thuê. Chuyển sang bước giữ phòng để giữ giường cho khách.
                   </p>
                   <button 
                     className="btn btn-primary"
                     onClick={() => navigate(`/lap-phieu-dat-coc?nhuCauThueId=${nhuCauThueId}`)}
                     style={{ padding: '14px 28px', fontSize: '16px' }}
                   >
-                    Lập phiếu đặt cọc ngay ➔
+                    Giữ phòng ngay ➔
                   </button>
                 </div>
               )}

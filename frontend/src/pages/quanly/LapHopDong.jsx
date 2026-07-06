@@ -544,7 +544,7 @@ export default function LapHopDong() {
                     disabled={checkingResidency || members.length === 0}
                     style={{ background: 'var(--warning-dark, #b45309)', borderColor: 'var(--warning-dark, #b45309)' }}
                   >
-                    {checkingResidency ? 'Đang kiểm tra...' : '🔍 Chạy kiểm tra điều kiện cư trú'}
+                    {checkingResidency ? 'Đang kiểm tra...' : '🔍 Chạy kiểm tra điều kiện'}
                   </button>
                 </div>
               </div>
@@ -553,13 +553,13 @@ export default function LapHopDong() {
               {checkResult && (
                 <div className="card" style={{ borderLeft: `6px solid ${checkResult.tat_ca_dat ? 'var(--success)' : 'var(--warning)'}`, background: '#f8fafc' }}>
                   <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', color: checkResult.tat_ca_dat ? 'var(--success)' : '#b45309', marginBottom: '16px' }}>
-                    {checkResult.tat_ca_dat ? '✅ ĐẠT YÊU CẦU CƯ TRÚ' : '⚠️ PHÁT HIỆN THÀNH VIÊN KHÔNG ĐẠT ĐIỀU KIỆN'}
+                    {checkResult.tat_ca_dat ? '✅ ĐẠT YÊU CẦU ĐIỀU KIỆN' : '⚠️ PHÁT HIỆN THÀNH VIÊN KHÔNG ĐẠT ĐIỀU KIỆN'}
                   </h3>
                   
                   <div style={{ fontSize: '14px', color: 'var(--gray-600)', marginBottom: '16px' }}>
                     {checkResult.tat_ca_dat 
                       ? 'Tất cả các thành viên đều khớp giới tính quy định của phòng và có đầy đủ thông tin CMND/CCCD.'
-                      : 'Có một số thành viên không đạt điều kiện cư trú. Đối với phòng nguyên nhóm, các thành viên không đạt sẽ bị LOẠI khỏi danh sách hợp đồng chính thức khi lập.'
+                      : 'Có một số thành viên không đạt điều kiện. Đối với phòng nguyên nhóm, các thành viên không đạt sẽ bị LOẠI khỏi danh sách hợp đồng chính thức khi lập.'
                     }
                   </div>
 

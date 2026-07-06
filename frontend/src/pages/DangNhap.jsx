@@ -142,7 +142,7 @@ export default function DangNhap() {
           fontSize: '14px',
           marginBottom: '32px'
         }}>
-          Hệ thống Quản lý Ký túc xá & Homestay
+          Hệ thống quản lý ký túc xá HomeStay Dorm
         </div>
 
         {/* Thông báo lỗi */}
@@ -190,7 +190,7 @@ export default function DangNhap() {
               type="email" 
               id="email" 
               className="input" 
-              placeholder="nhânviên@dorm.com" 
+              placeholder="Nhập email công ty" 
               required
               disabled={isLocked || loading}
               value={email}
@@ -228,23 +228,6 @@ export default function DangNhap() {
             {loading ? 'Đang xác thực...' : 'Đăng nhập ➔'}
           </button>
         </form>
-
-        <div className="hint-box" style={{
-          marginTop: '24px',
-          background: 'var(--gray-100)',
-          padding: '16px',
-          borderRadius: '12px',
-          border: '1px dashed var(--gray-300)',
-          fontSize: '13px',
-          color: 'var(--gray-600)'
-        }}>
-          <strong>💡 Tài khoản thử nghiệm (Email / Pass):</strong>
-          <ul style={{ marginTop: '6px', paddingLeft: '18px' }}>
-            <li style={{ marginBottom: '4px' }}>Sale: <code>sale@dorm.com</code> / <code>123</code></li>
-            <li style={{ marginBottom: '4px' }}>Quản lý: <code>quanly@dorm.com</code> / <code>123</code></li>
-            <li style={{ marginBottom: '4px' }}>Kế toán: <code>ketoan@dorm.com</code> / <code>123</code></li>
-          </ul>
-        </div>
       </div>
 
       {toastMessage && (

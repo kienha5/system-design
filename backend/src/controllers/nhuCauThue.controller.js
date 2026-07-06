@@ -215,22 +215,24 @@ export const nhuCauThueController = {
     }
   },
 
-  /**
-   * Search rental requests by customer phone number.
-   * 
-   * @param {Object} req - Express request object
-   * @param {Object} res - Express response object
-   */
   async search(req, res) {
-    const { so_dien_thoai } = req.query
+    const { so_dien_thoai, trang_thai, pageSize } = req.query
 
     try {
+      if (!so_dien_thoai && trang_thai) {
+        const result = await nhuCauThueService.list({ trang_thai, limit: pageSize ? parseInt(pageSize) : 10 })
+        return res.json({
+          success: true,
+          data: result
+        })
+      }
+
       if (!so_dien_thoai) {
         return res.status(400).json({
           success: false,
           error: {
             code: 'VALIDATION_ERROR',
-            message: 'Thiếu tham số so_dien_thoai.'
+            message: 'Thiếu tham số so_dien_thoai hoặc trang_thai.'
           }
         })
       }

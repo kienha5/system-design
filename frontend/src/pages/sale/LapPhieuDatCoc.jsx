@@ -207,12 +207,12 @@ export default function LapPhieuDatCoc() {
       <Sidebar />
       
       <div className="main">
-        <Header title="Lập phiếu đặt cọc" />
+        <Header title="Giữ phòng" />
         
         <div className="content">
           <div className="page-header">
-            <h1 className="page-title">Lập phiếu đặt cọc</h1>
-            <p className="page-subtitle">Thực hiện giữ chỗ phòng và giường cho khách hàng bằng cách lập phiếu đặt cọc thời hạn thanh toán 24h.</p>
+            <h1 className="page-title">Giữ phòng</h1>
+            <p className="page-subtitle">Thực hiện giữ chỗ phòng và giường cho khách hàng bằng cách lập phiếu giữ phòng thời hạn thanh toán 24h.</p>
           </div>
 
           {toast && (
@@ -230,7 +230,7 @@ export default function LapPhieuDatCoc() {
             <div className="wizard-steps">
               <div className={`wizard-step ${activeStep === 1 ? 'active' : activeStep > 1 ? 'completed' : ''}`}>
                 <div className="step-number">1</div>
-                <span>Tìm yêu cầu thuê</span>
+                <span>Tìm khách đăng ký</span>
               </div>
               <div style={{ flex: 1, height: '2px', background: 'var(--gray-200)', margin: '0 16px' }}></div>
               <div className={`wizard-step ${activeStep === 2 ? 'active' : activeStep > 2 ? 'completed' : ''}`}>
@@ -240,7 +240,7 @@ export default function LapPhieuDatCoc() {
               <div style={{ flex: 1, height: '2px', background: 'var(--gray-200)', margin: '0 16px' }}></div>
               <div className={`wizard-step ${activeStep === 3 ? 'active' : ''}`}>
                 <div className="step-number">3</div>
-                <span>Xác nhận & Tạo phiếu</span>
+                <span>Xác nhận & Giữ phòng</span>
               </div>
             </div>
           )}
@@ -251,7 +251,7 @@ export default function LapPhieuDatCoc() {
           {activeStep === 1 && (
             <div style={{ animation: 'fadeIn 0.3s ease' }}>
               <div className="card" style={{ marginBottom: '24px' }}>
-                <h3 style={{ marginBottom: '16px', color: 'var(--gray-800)' }}>🔍 Nhập mã yêu cầu hoặc SĐT khách hàng</h3>
+                <h3 style={{ marginBottom: '16px', color: 'var(--gray-800)' }}>🔍 Nhập mã đăng ký hoặc SĐT khách hàng</h3>
                 
                 <form onSubmit={handleSearch} style={{ display: 'flex', gap: '12px' }}>
                   <input 

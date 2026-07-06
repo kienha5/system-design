@@ -68,7 +68,9 @@ export const validateParams = (schema) => {
   return (req, res, next) => {
     const result = schema.safeParse(req.params)
     if (!result.success) {
-      const messages = result.error.errors.map(err => {
+      console.log('[DEBUG] validateParams failed:', { params: req.params, error: result.error })
+      const issues = result.error.issues || result.error.errors || []
+      const messages = issues.map(err => {
         const field = err.path.join('.')
         return `${field}: ${err.message}`
       }).join(', ')

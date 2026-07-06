@@ -46,10 +46,10 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) throw error
-    
+
     const res = await axiosClient.get('/me')
     setUser(res.data)
-    return res.data  // trả về { vai_tro } để App.jsx redirect đúng dashboard
+    return res.data
   }
 
   const logout = async () => {

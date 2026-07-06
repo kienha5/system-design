@@ -19,3 +19,7 @@ export const xacNhanKhach = (id) =>
 
 export const getBienBanTraPhong = (id) =>
   axiosClient.get(`/bien-ban-tra-phong/${id}`)
+
+export const getGoiYTyLe = (id) =>
+  axiosClient.get(`/bien-ban-tra-phong/${id}/goi-y-ty-le`)
+
