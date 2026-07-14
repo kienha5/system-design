@@ -3,6 +3,24 @@
 ========================================================================
 
 ------------------------------------------------------------------------
+Version: v0.7.0
+Date: 2026-07-14
+Description: Form Validation UX Enhancements, Database Accounts Link & GET /me Extension
+------------------------------------------------------------------------
+* Form Validation UX & Layout Styling
+  - Integrated FieldError component and parser into all 8 frontend forms to display red-colored inline warning labels instead of raw technical strings.
+  - Implemented CSS overrides in custom.css to set input widths, paddings, and ellipsis margins.
+  - Shortened all form input placeholders to under 30 characters to prevent layout overflow.
+  - Corrected form payloads to send undefined instead of null for empty fields, preventing Zod schema verification failures.
+* Database Schema & Account Audit
+  - Added email VARCHAR(150) column to nguoi_dung_he_thong table to avoid cross-schema queries.
+  - Backfilled and synchronized user email addresses from auth.users database table.
+  - Extended GET /api/v1/me to retrieve and return employee email parameter.
+* Express Query Validation Refactoring
+  - Refactored validateQuery middleware in validate.js to shadow req.query using Object.defineProperty on the request instance, successfully resolving Express 5 getter-only reassignment crashes.
+  - Verified GET /api/v1/phong query filters and type coercion.
+
+------------------------------------------------------------------------
 Version: v0.6.0
 Date: 2026-07-06
 Description: UI Overhaul, Database Statistics Integration, & Test Scenarios Setup

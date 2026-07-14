@@ -5,6 +5,8 @@ import Header from '../../components/shared/Header'
 import Toast from '../../components/shared/Toast'
 import { searchHopDong, getHopDong } from '../../api/hopDong.api'
 import { dangKyTraPhong, capNhatNgayHen } from '../../api/bienBanTraPhong.api'
+import { FieldError } from '../../components/shared/FieldError'
+import { parseValidationErrors } from '../../utils/fieldNameMap'
 
 export default function DangKyTraPhong() {
   const navigate = useNavigate()
@@ -21,6 +23,7 @@ export default function DangKyTraPhong() {
   const [ngayHenMoi, setNgayHenMoi] = useState(new Date().toISOString().split('T')[0])
   
   const [actionLoading, setActionLoading] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState({})
   const [toast, setToast] = useState(null)
 
   const showToast = (message, type = 'success') => {
@@ -96,6 +99,7 @@ export default function DangKyTraPhong() {
     if (!selectedContract) return
 
     setActionLoading(true)
+    setFieldErrors({})
     try {
       const payload = {
         hop_dong_id: selectedContract.id,
@@ -117,7 +121,13 @@ export default function DangKyTraPhong() {
       }
     } catch (err) {
       console.error(err)
-      showToast(err.response?.data?.error?.message || 'Lỗi đăng ký trả phòng.', 'danger')
+      if (err.code === 'VALIDATION_ERROR') {
+        const errors = parseValidationErrors(err)
+        setFieldErrors(errors)
+        showToast('Vui lòng kiểm tra lại các thông tin chưa hợp lệ.', 'warning')
+      } else {
+        showToast(err.response?.data?.error?.message || err.message || 'Lỗi đăng ký trả phòng.', 'danger')
+      }
     } finally {
       setActionLoading(false)
     }
@@ -128,6 +138,7 @@ export default function DangKyTraPhong() {
     if (!selectedContract?.bien_ban_tra_phong_id) return
 
     setActionLoading(true)
+    setFieldErrors({})
     try {
       const res = await capNhatNgayHen(selectedContract.bien_ban_tra_phong_id, ngayHenMoi)
       if (res.success) {
@@ -143,7 +154,13 @@ export default function DangKyTraPhong() {
       }
     } catch (err) {
       console.error(err)
-      showToast(err.response?.data?.error?.message || 'Lỗi cập nhật ngày hẹn.', 'danger')
+      if (err.code === 'VALIDATION_ERROR') {
+        const errors = parseValidationErrors(err)
+        setFieldErrors(errors)
+        showToast('Vui lòng kiểm tra lại các thông tin chưa hợp lệ.', 'warning')
+      } else {
+        showToast(err.response?.data?.error?.message || err.message || 'Lỗi cập nhật ngày hẹn.', 'danger')
+      }
     } finally {
       setActionLoading(false)
     }
@@ -200,8 +217,8 @@ export default function DangKyTraPhong() {
               <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
                 <input
                   type="text"
-                  className="form-control"
-                  placeholder="Nhập mã hợp đồng, số điện thoại hoặc họ tên khách hàng..."
+                  className="input"
+                  placeholder="Mã hợp đồng hoặc SĐT khách..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   disabled={loadingSearch || loadingContract}
@@ -389,11 +406,17 @@ export default function DangKyTraPhong() {
                           <label className="form-label" style={{ fontWeight: 600 }}>Ngày hẹn trả phòng mới:</label>
                           <input
                             type="date"
-                            className="form-control"
+                            className={`input ${fieldErrors.ngay_tra_phong_du_kien ? 'input-error' : ''}`}
                             value={ngayHenMoi}
-                            onChange={(e) => setNgayHenMoi(e.target.value)}
+                            onChange={(e) => {
+                              setNgayHenMoi(e.target.value)
+                              if (fieldErrors.ngay_tra_phong_du_kien) {
+                                setFieldErrors(prev => ({ ...prev, ngay_tra_phong_du_kien: undefined }))
+                              }
+                            }}
                             min={new Date().toISOString().split('T')[0]}
                           />
+                          <FieldError error={fieldErrors.ngay_tra_phong_du_kien} />
                         </div>
                         <button
                           className="btn btn-primary"
@@ -434,11 +457,17 @@ export default function DangKyTraPhong() {
                       </label>
                       <input
                         type="date"
-                        className="form-control"
+                        className={`input ${fieldErrors.ngay_tra_phong_du_kien ? 'input-error' : ''}`}
                         value={ngayTraPhongDuKien}
-                        onChange={(e) => setNgayTraPhongDuKien(e.target.value)}
+                        onChange={(e) => {
+                          setNgayTraPhongDuKien(e.target.value)
+                          if (fieldErrors.ngay_tra_phong_du_kien) {
+                            setFieldErrors(prev => ({ ...prev, ngay_tra_phong_du_kien: undefined }))
+                          }
+                        }}
                         min={new Date().toISOString().split('T')[0]}
                       />
+                      <FieldError error={fieldErrors.ngay_tra_phong_du_kien} />
                       <span style={{ fontSize: '12px', color: 'var(--gray-400)', display: 'block', marginTop: '6px' }}>
                         Chỉ cho phép chọn ngày hôm nay hoặc các ngày trong tương lai.
                       </span>

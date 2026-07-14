@@ -6,6 +6,8 @@ import Toast from '../../components/shared/Toast'
 import axiosClient from '../../api/axiosClient'
 import { createHopDong, kiemTraDieuKien } from '../../api/hopDong.api'
 import { getPhieuDatCocById } from '../../api/phieuDatCoc.api'
+import { FieldError } from '../../components/shared/FieldError'
+import { parseValidationErrors } from '../../utils/fieldNameMap'
 
 export default function LapHopDong() {
   const navigate = useNavigate()
@@ -33,6 +35,7 @@ export default function LapHopDong() {
   const [acceptTerms, setAcceptTerms] = useState(false)
   const [creatingContract, setCreatingContract] = useState(false)
   const [createdContract, setCreatedContract] = useState(null)
+  const [fieldErrors, setFieldErrors] = useState({})
 
   // Toast notification state
   const [toast, setToast] = useState(null)
@@ -237,6 +240,7 @@ export default function LapHopDong() {
     }
 
     setCreatingContract(true)
+    setFieldErrors({})
     try {
       const payload = {
         phieu_dat_coc_id: selectedSlip.id,
@@ -257,7 +261,13 @@ export default function LapHopDong() {
       }
     } catch (err) {
       console.error(err)
-      showToast(err.response?.data?.error?.message || 'Lỗi khi lập hợp đồng thuê.', 'danger')
+      if (err.code === 'VALIDATION_ERROR') {
+        const errors = parseValidationErrors(err)
+        setFieldErrors(errors)
+        showToast('Vui lòng kiểm tra lại các thông tin chưa hợp lệ.', 'warning')
+      } else {
+        showToast(err.response?.data?.error?.message || err.message || 'Lỗi khi lập hợp đồng thuê.', 'danger')
+      }
     } finally {
       setCreatingContract(false)
     }
@@ -429,7 +439,7 @@ export default function LapHopDong() {
                       <input 
                         type="text" 
                         className="input" 
-                        placeholder="Nhập số điện thoại của thành viên cần tìm..." 
+                        placeholder="SĐT thành viên cần tìm..." 
                         value={searchPhone}
                         onChange={(e) => setSearchPhone(e.target.value)}
                         style={{ flex: 1 }}
@@ -642,33 +652,51 @@ export default function LapHopDong() {
                     <label className="form-label">Ngày bắt đầu thuê (Ngày dời vào):</label>
                     <input 
                       type="date" 
-                      className="input" 
+                      className={`input ${fieldErrors.ngay_bat_dau ? 'input-error' : ''}`}
                       value={ngayBatDau} 
-                      onChange={(e) => setNgayBatDau(e.target.value)} 
+                      onChange={(e) => {
+                        setNgayBatDau(e.target.value)
+                        if (fieldErrors.ngay_bat_dau) {
+                          setFieldErrors(prev => ({ ...prev, ngay_bat_dau: undefined }))
+                        }
+                      }} 
                     />
+                    <FieldError error={fieldErrors.ngay_bat_dau} />
                   </div>
 
                   <div>
                     <label className="form-label">Ngày kết thúc hợp đồng (Không bắt buộc):</label>
                     <input 
                       type="date" 
-                      className="input" 
+                      className={`input ${fieldErrors.ngay_ket_thuc ? 'input-error' : ''}`}
                       value={ngayKetThuc} 
-                      onChange={(e) => setNgayKetThuc(e.target.value)} 
+                      onChange={(e) => {
+                        setNgayKetThuc(e.target.value)
+                        if (fieldErrors.ngay_ket_thuc) {
+                          setFieldErrors(prev => ({ ...prev, ngay_ket_thuc: undefined }))
+                        }
+                      }} 
                     />
+                    <FieldError error={fieldErrors.ngay_ket_thuc} />
                   </div>
 
                   <div>
                     <label className="form-label">Kỳ hạn thanh toán tiền nhà:</label>
                     <select 
-                      className="select" 
+                      className={`select ${fieldErrors.ky_thanh_toan ? 'input-error' : ''}`}
                       value={kyThanhToan} 
-                      onChange={(e) => setKyThanhToan(e.target.value)}
+                      onChange={(e) => {
+                        setKyThanhToan(e.target.value)
+                        if (fieldErrors.ky_thanh_toan) {
+                          setFieldErrors(prev => ({ ...prev, ky_thanh_toan: undefined }))
+                        }
+                      }}
                     >
                       <option value="Thang">Thanh toán theo từng tháng</option>
                       <option value="Quy">Thanh toán theo quý (3 tháng)</option>
                       <option value="NuaNam">Thanh toán 6 tháng một lần</option>
                     </select>
+                    <FieldError error={fieldErrors.ky_thanh_toan} />
                   </div>
 
                   <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid var(--gray-200)', marginTop: '8px' }}>

@@ -4,6 +4,8 @@ import Sidebar from '../../components/shared/Sidebar'
 import Header from '../../components/shared/Header'
 import Toast from '../../components/shared/Toast'
 import { getNhuCauThue, datLichXem, xacNhanDaXem } from '../../api/nhuCauThue.api'
+import { FieldError } from '../../components/shared/FieldError'
+import { parseValidationErrors } from '../../utils/fieldNameMap'
 
 export default function DatLichXemPhong() {
   const { nhuCauThueId } = useParams()
@@ -13,6 +15,7 @@ export default function DatLichXemPhong() {
   const [loadingRequest, setLoadingRequest] = useState(true)
   const [loadingSubmit, setLoadingSubmit] = useState(false)
   const [toast, setToast] = useState(null)
+  const [fieldErrors, setFieldErrors] = useState({})
 
   // Form states
   const [lichHenXem, setLichHenXem] = useState('')
@@ -51,6 +54,7 @@ export default function DatLichXemPhong() {
 
   const handleSchedule = async (e) => {
     e.preventDefault()
+    setFieldErrors({})
     if (!lichHenXem) {
       setToast({ type: 'warning', message: 'Vui lòng chọn thời gian hẹn xem.' })
       return
@@ -78,8 +82,11 @@ export default function DatLichXemPhong() {
         setToast({ type: 'danger', message: res.error?.message || 'Lỗi đặt lịch hẹn.' })
       }
     } catch (err) {
-      // Xử lý lỗi trùng lịch hẹn xem (LICH_HEN_BI_TRUNG - 409)
-      if (err.code === 'LICH_HEN_BI_TRUNG') {
+      if (err.code === 'VALIDATION_ERROR') {
+        const errors = parseValidationErrors(err)
+        setFieldErrors(errors)
+        setToast({ type: 'warning', message: 'Vui lòng kiểm tra lại các thông tin chưa hợp lệ.' })
+      } else if (err.code === 'LICH_HEN_BI_TRUNG') {
         setToast({ 
           type: 'danger', 
           message: 'Trùng lịch hẹn xem cùng một phòng trong khoảng 1 giờ (trước/sau). Vui lòng chọn giờ khác!' 
@@ -298,26 +305,38 @@ export default function DatLichXemPhong() {
                     <input 
                       type="datetime-local" 
                       id="lichHenXem" 
-                      className="input" 
+                      className={`input ${fieldErrors.lich_hen_xem ? 'input-error' : ''}`}
                       required
                       disabled={request.trang_thai === 'DaXemPhong' || request.trang_thai === 'ChuyenDatCoc' || loadingSubmit}
                       value={lichHenXem}
-                      onChange={(e) => setLichHenXem(e.target.value)}
+                      onChange={(e) => {
+                        setLichHenXem(e.target.value)
+                        if (fieldErrors.lich_hen_xem) {
+                          setFieldErrors(prev => ({ ...prev, lich_hen_xem: undefined }))
+                        }
+                      }}
                     />
+                    <FieldError error={fieldErrors.lich_hen_xem} />
                   </div>
 
                   <div className="form-group">
                     <label htmlFor="phuongThucThongBao">Phương thức thông báo lịch hẹn *</label>
                     <select 
                       id="phuongThucThongBao" 
-                      className="select"
+                      className={`select ${fieldErrors.phuong_thuc_thong_bao ? 'input-error' : ''}`}
                       disabled={request.trang_thai === 'DaXemPhong' || request.trang_thai === 'ChuyenDatCoc' || loadingSubmit}
                       value={phuongThucThongBao}
-                      onChange={(e) => setPhuongThucThongBao(e.target.value)}
+                      onChange={(e) => {
+                        setPhuongThucThongBao(e.target.value)
+                        if (fieldErrors.phuong_thuc_thong_bao) {
+                          setFieldErrors(prev => ({ ...prev, phuong_thuc_thong_bao: undefined }))
+                        }
+                      }}
                     >
                       <option value="Email">Email</option>
                       <option value="SDT">Số điện thoại (SMS/Zalo)</option>
                     </select>
+                    <FieldError error={fieldErrors.phuong_thuc_thong_bao} />
                   </div>
                 </div>
 

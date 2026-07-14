@@ -5,6 +5,8 @@ import Header from '../../components/shared/Header'
 import Toast from '../../components/shared/Toast'
 import { getHopDong } from '../../api/hopDong.api'
 import { taoHoaDon, xacNhanThanhToan } from '../../api/hoaDon.api'
+import { FieldError } from '../../components/shared/FieldError'
+import { parseValidationErrors } from '../../utils/fieldNameMap'
 
 export default function ThanhToanKyDau() {
   const { hopDongId } = useParams()
@@ -25,6 +27,7 @@ export default function ThanhToanKyDau() {
 
   // Step 2: Payment states
   const [paymentMethod, setPaymentMethod] = useState('ChuyenKhoan')
+  const [fieldErrors, setFieldErrors] = useState({})
 
   // Toast notifications
   const [toast, setToast] = useState(null)
@@ -66,6 +69,7 @@ export default function ThanhToanKyDau() {
     if (!contract) return
 
     setActionLoading(true)
+    setFieldErrors({})
     try {
       const payload = {
         hop_dong_id: contract.id,
@@ -82,7 +86,13 @@ export default function ThanhToanKyDau() {
       }
     } catch (err) {
       console.error(err)
-      showToast(err.response?.data?.error?.message || 'Lỗi khi lập hóa đơn.', 'danger')
+      if (err.code === 'VALIDATION_ERROR') {
+        const errors = parseValidationErrors(err)
+        setFieldErrors(errors)
+        showToast('Vui lòng kiểm tra lại các thông tin chưa hợp lệ.', 'warning')
+      } else {
+        showToast(err.response?.data?.error?.message || err.message || 'Lỗi khi lập hóa đơn.', 'danger')
+      }
     } finally {
       setActionLoading(false)
     }
@@ -210,33 +220,51 @@ export default function ThanhToanKyDau() {
                           <label className="form-label">Tiền điện kỳ đầu (Tạm thu/Không có):</label>
                           <input 
                             type="number" 
-                            className="input" 
+                            className={`input ${fieldErrors.tien_dien ? 'input-error' : ''}`}
                             value={tienDien} 
                             min="0"
-                            onChange={(e) => setTienDien(Math.max(0, parseInt(e.target.value) || 0))} 
+                            onChange={(e) => {
+                              setTienDien(Math.max(0, parseInt(e.target.value) || 0))
+                              if (fieldErrors.tien_dien) {
+                                setFieldErrors(prev => ({ ...prev, tien_dien: undefined }))
+                              }
+                            }} 
                           />
+                          <FieldError error={fieldErrors.tien_dien} />
                         </div>
 
                         <div>
                           <label className="form-label">Tiền nước kỳ đầu (Tạm thu/Không có):</label>
                           <input 
                             type="number" 
-                            className="input" 
+                            className={`input ${fieldErrors.tien_nuoc ? 'input-error' : ''}`}
                             value={tienNuoc} 
                             min="0"
-                            onChange={(e) => setTienNuoc(Math.max(0, parseInt(e.target.value) || 0))} 
+                            onChange={(e) => {
+                              setTienNuoc(Math.max(0, parseInt(e.target.value) || 0))
+                              if (fieldErrors.tien_nuoc) {
+                                setFieldErrors(prev => ({ ...prev, tien_nuoc: undefined }))
+                              }
+                            }} 
                           />
+                          <FieldError error={fieldErrors.tien_nuoc} />
                         </div>
 
                         <div>
                           <label className="form-label">Các dịch vụ khác (Gửi xe, phí quản lý...):</label>
                           <input 
                             type="number" 
-                            className="input" 
+                            className={`input ${fieldErrors.tien_dich_vu_khac ? 'input-error' : ''}`}
                             value={tienDichVuKhac} 
                             min="0"
-                            onChange={(e) => setTienDichVuKhac(Math.max(0, parseInt(e.target.value) || 0))} 
+                            onChange={(e) => {
+                              setTienDichVuKhac(Math.max(0, parseInt(e.target.value) || 0))
+                              if (fieldErrors.tien_dich_vu_khac) {
+                                setFieldErrors(prev => ({ ...prev, tien_dich_vu_khac: undefined }))
+                              }
+                            }} 
                           />
+                          <FieldError error={fieldErrors.tien_dich_vu_khac} />
                         </div>
                       </div>
                     </div>

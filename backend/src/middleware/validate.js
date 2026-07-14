@@ -23,8 +23,12 @@ export const validateQuery = (schema) => {
       })
     }
     
-    // Assign parsed and coerced data back to req.query
-    req.query = result.data
+    // Override req.query on this request instance to return the parsed and coerced data
+    Object.defineProperty(req, 'query', {
+      value: result.data,
+      writable: true,
+      configurable: true
+    })
     next()
   }
 }

@@ -292,3 +292,25 @@
   border-color: var(--primary) !important;
 }
 
+/* Đảm bảo input không bao giờ nhỏ hơn nội dung placeholder */
+.input,
+.select,
+.textarea {
+  min-width: 0;           /* cho phép co lại trong flex/grid */
+  width: 100%;            /* luôn full width container */
+  padding: 12px 16px;     /* tăng padding ngang từ 14px lên 16px */
+  text-overflow: ellipsis;
+}
+
+/* Input trong search/filter bar — đảm bảo đủ rộng */
+.search-input-wrapper {
+  flex: 1;
+  min-width: 200px;       /* không cho co quá nhỏ */
+}
+
+.input-error {
+  border-color: var(--danger) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+}
+
+

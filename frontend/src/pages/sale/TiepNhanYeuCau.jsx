@@ -5,6 +5,8 @@ import Header from '../../components/shared/Header'
 import Toast from '../../components/shared/Toast'
 import TraCuuPhong from '../../components/shared/TraCuuPhong'
 import { createNhuCauThue, updatePhongDuKien } from '../../api/nhuCauThue.api'
+import { FieldError } from '../../components/shared/FieldError'
+import { parseValidationErrors } from '../../utils/fieldNameMap'
 
 export default function TiepNhanYeuCau() {
   const navigate = useNavigate()
@@ -32,6 +34,7 @@ export default function TiepNhanYeuCau() {
 
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState(null)
+  const [fieldErrors, setFieldErrors] = useState({})
   
   // Điều phối luồng (Wizard states)
   // 'input': đang điền form
@@ -45,8 +48,14 @@ export default function TiepNhanYeuCau() {
     const { id, value } = e.target
     if (section === 'customer') {
       setCustomer({ ...customer, [id]: value })
+      if (fieldErrors[id]) {
+        setFieldErrors(prev => ({ ...prev, [id]: undefined }))
+      }
     } else {
       setCriteria({ ...criteria, [id]: value })
+      if (fieldErrors[id]) {
+        setFieldErrors(prev => ({ ...prev, [id]: undefined }))
+      }
     }
   }
 
@@ -54,21 +63,22 @@ export default function TiepNhanYeuCau() {
     e.preventDefault()
     setLoading(true)
     setToast(null)
+    setFieldErrors({})
 
     const payload = {
       khach_hang: {
         ...customer,
-        email: customer.email || null,
-        so_cmnd_cccd: customer.so_cmnd_cccd || null
+        email: customer.email || undefined,
+        so_cmnd_cccd: customer.so_cmnd_cccd || undefined
       },
       so_nguoi: Number(criteria.so_nguoi),
       gioi_tinh_yeu_cau: customer.gioi_tinh, // Mặc định yêu cầu phòng nam/nữ trùng giới tính khách
-      khu_vuc_yeu_cau: criteria.khu_vuc_yeu_cau || null,
+      khu_vuc_yeu_cau: criteria.khu_vuc_yeu_cau || undefined,
       loai_phong_yeu_cau: criteria.loai_phong_yeu_cau,
-      muc_gia_toi_da: criteria.muc_gia_toi_da ? Number(criteria.muc_gia_toi_da) : null,
-      thoi_gian_vao_o_du_kien: criteria.thoi_gian_vao_o_du_kien || null,
+      muc_gia_toi_da: criteria.muc_gia_toi_da ? Number(criteria.muc_gia_toi_da) : undefined,
+      thoi_gian_vao_o_du_kien: criteria.thoi_gian_vao_o_du_kien || undefined,
       thoi_han_thue_du_kien: Number(criteria.thoi_han_thue_du_kien),
-      ghi_chu_yeu_cau: criteria.ghi_chu_yeu_cau || null,
+      ghi_chu_yeu_cau: criteria.ghi_chu_yeu_cau || undefined,
       phuong_thuc_thong_bao: criteria.phuong_thuc_thong_bao
     }
 
@@ -89,7 +99,13 @@ export default function TiepNhanYeuCau() {
         setToast({ type: 'danger', message: res.error?.message || 'Không thể đăng ký thông tin khách mới.' })
       }
     } catch (err) {
-      setToast({ type: 'danger', message: err.message || 'Lỗi hệ thống.' })
+      if (err.code === 'VALIDATION_ERROR') {
+        const errors = parseValidationErrors(err)
+        setFieldErrors(errors)
+        setToast({ type: 'warning', message: 'Vui lòng kiểm tra lại các thông tin chưa hợp lệ.' })
+      } else {
+        setToast({ type: 'danger', message: err.message || 'Lỗi hệ thống.' })
+      }
     } finally {
       setLoading(false)
     }
@@ -152,12 +168,13 @@ export default function TiepNhanYeuCau() {
                   <input 
                     type="text" 
                     id="ho_ten" 
-                    className="input" 
+                    className={`input ${fieldErrors.ho_ten ? 'input-error' : ''}`}
                     placeholder="Nhập họ và tên khách hàng" 
                     required 
                     value={customer.ho_ten}
                     onChange={(e) => handleInputChange(e, 'customer')}
                   />
+                  <FieldError error={fieldErrors.ho_ten} />
                 </div>
                 
                 <div className="form-group">
@@ -165,12 +182,13 @@ export default function TiepNhanYeuCau() {
                   <input 
                     type="text" 
                     id="so_dien_thoai" 
-                    className="input" 
+                    className={`input ${fieldErrors.so_dien_thoai ? 'input-error' : ''}`}
                     placeholder="Nhập số điện thoại" 
                     required 
                     value={customer.so_dien_thoai}
                     onChange={(e) => handleInputChange(e, 'customer')}
                   />
+                  <FieldError error={fieldErrors.so_dien_thoai} />
                 </div>
               </div>
 
@@ -180,18 +198,19 @@ export default function TiepNhanYeuCau() {
                   <input 
                     type="email" 
                     id="email" 
-                    className="input" 
+                    className={`input ${fieldErrors.email ? 'input-error' : ''}`}
                     placeholder="nhap-email@gmail.com"
                     value={customer.email}
                     onChange={(e) => handleInputChange(e, 'customer')}
                   />
+                  <FieldError error={fieldErrors.email} />
                 </div>
 
                 <div className="form-group">
                   <label htmlFor="gioi_tinh">Giới tính</label>
                   <select 
                     id="gioi_tinh" 
-                    className="select"
+                    className={`select ${fieldErrors.gioi_tinh ? 'input-error' : ''}`}
                     value={customer.gioi_tinh}
                     onChange={(e) => handleInputChange(e, 'customer')}
                   >
@@ -199,6 +218,7 @@ export default function TiepNhanYeuCau() {
                     <option value="Nu">Nữ</option>
                     <option value="Khac">Khác</option>
                   </select>
+                  <FieldError error={fieldErrors.gioi_tinh} />
                 </div>
               </div>
 
@@ -208,10 +228,11 @@ export default function TiepNhanYeuCau() {
                   <input 
                     type="text" 
                     id="quoc_tich" 
-                    className="input" 
+                    className={`input ${fieldErrors.quoc_tich ? 'input-error' : ''}`}
                     value={customer.quoc_tich}
                     onChange={(e) => handleInputChange(e, 'customer')}
                   />
+                  <FieldError error={fieldErrors.quoc_tich} />
                 </div>
 
                 <div className="form-group">
@@ -219,11 +240,12 @@ export default function TiepNhanYeuCau() {
                   <input 
                     type="text" 
                     id="so_cmnd_cccd" 
-                    className="input" 
+                    className={`input ${fieldErrors.so_cmnd_cccd ? 'input-error' : ''}`}
                     placeholder="Nhập số CMND/CCCD"
                     value={customer.so_cmnd_cccd}
                     onChange={(e) => handleInputChange(e, 'customer')}
                   />
+                  <FieldError error={fieldErrors.so_cmnd_cccd} />
                 </div>
               </div>
 
@@ -237,19 +259,20 @@ export default function TiepNhanYeuCau() {
                   <input 
                     type="number" 
                     id="so_nguoi" 
-                    className="input" 
+                    className={`input ${fieldErrors.so_nguoi ? 'input-error' : ''}`}
                     min="1" 
                     required 
                     value={criteria.so_nguoi}
                     onChange={(e) => handleInputChange(e, 'criteria')}
                   />
+                  <FieldError error={fieldErrors.so_nguoi} />
                 </div>
 
                 <div className="form-group">
                   <label htmlFor="loai_phong_yeu_cau">Loại phòng yêu cầu</label>
                   <select 
                     id="loai_phong_yeu_cau" 
-                    className="select"
+                    className={`select ${fieldErrors.loai_phong_yeu_cau ? 'input-error' : ''}`}
                     value={criteria.loai_phong_yeu_cau}
                     onChange={(e) => handleInputChange(e, 'criteria')}
                   >
@@ -257,6 +280,7 @@ export default function TiepNhanYeuCau() {
                     <option value="Ghep">Phòng Ghép</option>
                     <option value="NguyenPhong">Nguyên Phòng</option>
                   </select>
+                  <FieldError error={fieldErrors.loai_phong_yeu_cau} />
                 </div>
               </div>
 
@@ -266,11 +290,12 @@ export default function TiepNhanYeuCau() {
                   <input 
                     type="text" 
                     id="khu_vuc_yeu_cau" 
-                    className="input" 
+                    className={`input ${fieldErrors.khu_vuc_yeu_cau ? 'input-error' : ''}`}
                     placeholder="Ví dụ: Khu A, tầng thấp..."
                     value={criteria.khu_vuc_yeu_cau}
                     onChange={(e) => handleInputChange(e, 'criteria')}
                   />
+                  <FieldError error={fieldErrors.khu_vuc_yeu_cau} />
                 </div>
 
                 <div className="form-group">
@@ -278,11 +303,12 @@ export default function TiepNhanYeuCau() {
                   <input 
                     type="number" 
                     id="muc_gia_toi_da" 
-                    className="input" 
+                    className={`input ${fieldErrors.muc_gia_toi_da ? 'input-error' : ''}`}
                     placeholder="Ví dụ: 3000000"
                     value={criteria.muc_gia_toi_da}
                     onChange={(e) => handleInputChange(e, 'criteria')}
                   />
+                  <FieldError error={fieldErrors.muc_gia_toi_da} />
                 </div>
               </div>
 
@@ -292,10 +318,11 @@ export default function TiepNhanYeuCau() {
                   <input 
                     type="date" 
                     id="thoi_gian_vao_o_du_kien" 
-                    className="input"
+                    className={`input ${fieldErrors.thoi_gian_vao_o_du_kien ? 'input-error' : ''}`}
                     value={criteria.thoi_gian_vao_o_du_kien}
                     onChange={(e) => handleInputChange(e, 'criteria')}
                   />
+                  <FieldError error={fieldErrors.thoi_gian_vao_o_du_kien} />
                 </div>
 
                 <div className="form-group">
@@ -303,11 +330,12 @@ export default function TiepNhanYeuCau() {
                   <input 
                     type="number" 
                     id="thoi_han_thue_du_kien" 
-                    className="input" 
+                    className={`input ${fieldErrors.thoi_han_thue_du_kien ? 'input-error' : ''}`}
                     min="1"
                     value={criteria.thoi_han_thue_du_kien}
                     onChange={(e) => handleInputChange(e, 'criteria')}
                   />
+                  <FieldError error={fieldErrors.thoi_han_thue_du_kien} />
                 </div>
               </div>
 
@@ -315,24 +343,26 @@ export default function TiepNhanYeuCau() {
                 <label htmlFor="phuong_thuc_thong_bao">Phương thức nhận thông báo *</label>
                 <select 
                   id="phuong_thuc_thong_bao" 
-                  className="select"
+                  className={`select ${fieldErrors.phuong_thuc_thong_bao ? 'input-error' : ''}`}
                   value={criteria.phuong_thuc_thong_bao}
                   onChange={(e) => handleInputChange(e, 'criteria')}
                 >
                   <option value="Email">Email</option>
                   <option value="SDT">Số điện thoại (SMS/Zalo)</option>
                 </select>
+                <FieldError error={fieldErrors.phuong_thuc_thong_bao} />
               </div>
 
               <div className="form-group">
                 <label htmlFor="ghi_chu_yeu_cau">Ghi chú yêu cầu thêm</label>
                 <textarea 
                   id="ghi_chu_yeu_cau" 
-                  className="textarea" 
+                  className={`textarea ${fieldErrors.ghi_chu_yeu_cau ? 'input-error' : ''}`}
                   placeholder="Ghi chú thêm về điều hòa, chỗ để xe, giờ giấc tự do..."
                   value={criteria.ghi_chu_yeu_cau}
                   onChange={(e) => handleInputChange(e, 'criteria')}
                 ></textarea>
+                <FieldError error={fieldErrors.ghi_chu_yeu_cau} />
               </div>
 
               <div className="page-actions">

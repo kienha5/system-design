@@ -6,6 +6,7 @@ import Toast from '../../components/shared/Toast'
 import TraCuuPhong from '../../components/shared/TraCuuPhong'
 import { getNhuCauThue, searchNhuCauThueByPhone } from '../../api/nhuCauThue.api'
 import { createPhieuDatCoc } from '../../api/phieuDatCoc.api'
+import { parseValidationErrors } from '../../utils/fieldNameMap'
 
 export default function LapPhieuDatCoc() {
   const [searchParams] = useSearchParams()
@@ -157,7 +158,12 @@ export default function LapPhieuDatCoc() {
         setToast({ type: 'danger', message: res.error?.message || 'Không thể tạo phiếu đặt cọc.' })
       }
     } catch (err) {
-      setToast({ type: 'danger', message: err.message || 'Lỗi tạo phiếu đặt cọc.' })
+      if (err.code === 'VALIDATION_ERROR') {
+        const errors = parseValidationErrors(err)
+        setToast({ type: 'warning', message: errors._general || 'Vui lòng kiểm tra lại các thông tin chưa hợp lệ.' })
+      } else {
+        setToast({ type: 'danger', message: err.message || 'Lỗi tạo phiếu đặt cọc.' })
+      }
     } finally {
       setLoadingSearch(false)
     }
@@ -257,7 +263,7 @@ export default function LapPhieuDatCoc() {
                   <input 
                     type="text" 
                     className="input" 
-                    placeholder="Nhập mã yêu cầu (UUID) hoặc số điện thoại khách hàng"
+                    placeholder="Mã đăng ký hoặc SĐT khách"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     disabled={loadingSearch}
