@@ -8,7 +8,8 @@ export const validateQuery = (schema) => {
   return (req, res, next) => {
     const result = schema.safeParse(req.query)
     if (!result.success) {
-      const messages = result.error.errors.map(err => {
+      const issues = result.error.issues || []
+      const messages = issues.map(err => {
         const field = err.path.join('.')
         return `${field}: ${err.message}`
       }).join(', ')
@@ -38,7 +39,8 @@ export const validateBody = (schema) => {
   return (req, res, next) => {
     const result = schema.safeParse(req.body)
     if (!result.success) {
-      const messages = result.error.errors.map(err => {
+      const issues = result.error.issues || []
+      const messages = issues.map(err => {
         const field = err.path.join('.')
         return `${field}: ${err.message}`
       }).join(', ')
