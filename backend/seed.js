@@ -71,7 +71,7 @@ async function main() {
 
     // 3. Tạo chi nhánh mới với UUID cố định hợp lệ để dễ quản lý
     console.log('3. Đang tạo chi nhánh...')
-    const branchId = 'c001c001-c001-c001-c001-c001c001c001'
+    const branchId = 'c001c001-c001-4001-a001-c001c001c001'
     const [branch] = await sql`
       INSERT INTO chi_nhanh (id, ten_chi_nhanh, dia_chi, so_dien_thoai)
       VALUES (

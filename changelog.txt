@@ -3,6 +3,16 @@
 ========================================================================
 
 ------------------------------------------------------------------------
+Version: v0.7.1
+Date: 2026-07-14
+Description: Bug Fixes in E2E Happy Path Flow (UC04 - UC05 - UC06)
+------------------------------------------------------------------------
+* Bug Fixes & UX Enhancements
+  - Lỗi 1 (chi_nhanh_id): Updated database seed to use a valid RFC 4122 v4-compliant branch UUID, resolving strict Zod validation schema failures on search/deposit. Prioritized user.chi_nhanh_id in the deposit payload.
+  - Lỗi 2 (lich_hen_xem): Verified datetime-local picker layout alignment on frontend and ensured datetime submission is correctly formatted to ISO 8601 UTC string.
+  - Lỗi 3 (phuong_thuc_thong_bao): Resolved JavaScript ReferenceError crash in DatLichXemPhong.jsx by mapping the camelCase state phuongThucThongBao to snake_case payload key phuong_thuc_thong_bao.
+
+------------------------------------------------------------------------
 Version: v0.7.0
 Date: 2026-07-14
 Description: Form Validation UX Enhancements, Database Accounts Link & GET /me Extension

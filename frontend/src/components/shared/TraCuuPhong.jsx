@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { searchPhong, getGiuongTrong } from '../../api/phong.api'
+import { useAuth } from '../../context/AuthContext'
 
 export default function TraCuuPhong({ 
   mode = 'browse', 
@@ -8,6 +9,7 @@ export default function TraCuuPhong({
   selectedPhongId,
   selectedGiuongId 
 }) {
+  const { user } = useAuth()
   // Bộ lọc tìm kiếm
   const [filters, setFilters] = useState({
     khu_vuc: '',
@@ -36,6 +38,7 @@ export default function TraCuuPhong({
     try {
       const res = await searchPhong({
         ...filters,
+        chi_nhanh_id: user?.chi_nhanh_id || undefined,
         gia_den: filters.gia_den ? Number(filters.gia_den) : undefined,
         page,
         pageSize
