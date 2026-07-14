@@ -41,8 +41,8 @@ export default function TraCuuPhong({
         pageSize
       })
       if (res.success) {
-        setRooms(res.data.rooms)
-        setTotal(res.data.total)
+        setRooms(res.data || [])
+        setTotal(res.meta?.total || 0)
       } else {
         setError(res.error?.message || 'Không thể lấy dữ liệu phòng.')
       }
