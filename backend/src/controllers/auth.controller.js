@@ -17,7 +17,8 @@ export const authController = {
         id: req.user.id,
         ho_ten: req.user.ho_ten,
         vai_tro: req.user.vai_tro,
-        chi_nhanh_id: req.user.chi_nhanh_id
+        chi_nhanh_id: req.user.chi_nhanh_id,
+        email: req.user.email
       }
     })
   }

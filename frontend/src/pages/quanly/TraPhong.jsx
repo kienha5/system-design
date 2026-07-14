@@ -12,6 +12,8 @@ import {
   getGoiYTyLe
 } from '../../api/bienBanTraPhong.api'
 import { thanhLyHopDong } from '../../api/hopDong.api'
+import { FieldError } from '../../components/shared/FieldError'
+import { parseValidationErrors } from '../../utils/fieldNameMap'
 
 export default function TraPhong() {
   const { bienBanId } = useParams()
@@ -24,6 +26,7 @@ export default function TraPhong() {
   
   // Active step in the UI (1, 2, 3, or 4)
   const [activeStep, setActiveStep] = useState(1)
+  const [fieldErrors, setFieldErrors] = useState({})
   const [toast, setToast] = useState(null)
 
   // Roles verification
@@ -172,6 +175,7 @@ export default function TraPhong() {
     }
 
     setActionLoading(true)
+    setFieldErrors({})
     try {
       const payload = {
         ngay_tra_thuc_te: new Date(ngayTraThucTe).toISOString(),
@@ -186,7 +190,13 @@ export default function TraPhong() {
       }
     } catch (err) {
       console.error(err)
-      showToast(err.response?.data?.error?.message || 'Lỗi ghi nhận đối soát.', 'danger')
+      if (err.code === 'VALIDATION_ERROR') {
+        const errors = parseValidationErrors(err)
+        setFieldErrors(errors)
+        showToast('Vui lòng kiểm tra lại các thông tin chưa hợp lệ.', 'warning')
+      } else {
+        showToast(err.response?.data?.error?.message || err.message || 'Lỗi ghi nhận đối soát.', 'danger')
+      }
     } finally {
       setActionLoading(false)
     }
@@ -200,6 +210,7 @@ export default function TraPhong() {
     }
 
     setActionLoading(true)
+    setFieldErrors({})
     try {
       const payload = {
         ty_le_hoan_coc: Number(tyLeHoanCoc),
@@ -217,7 +228,13 @@ export default function TraPhong() {
       }
     } catch (err) {
       console.error(err)
-      showToast(err.response?.data?.error?.message || 'Lỗi lập phiếu khấu trừ.', 'danger')
+      if (err.code === 'VALIDATION_ERROR') {
+        const errors = parseValidationErrors(err)
+        setFieldErrors(errors)
+        showToast('Vui lòng kiểm tra lại các thông tin chưa hợp lệ.', 'warning')
+      } else {
+        showToast(err.response?.data?.error?.message || err.message || 'Lỗi lập phiếu khấu trừ.', 'danger')
+      }
     } finally {
       setActionLoading(false)
     }
@@ -433,11 +450,17 @@ export default function TraPhong() {
                 <label className="form-label" style={{ fontWeight: 600 }}>Ngày trả phòng thực tế:</label>
                 <input
                   type="datetime-local"
-                  className="form-control"
+                  className={`input ${fieldErrors.ngay_tra_thuc_te ? 'input-error' : ''}`}
                   value={ngayTraThucTe}
-                  onChange={(e) => setNgayTraThucTe(e.target.value)}
+                  onChange={(e) => {
+                    setNgayTraThucTe(e.target.value)
+                    if (fieldErrors.ngay_tra_thuc_te) {
+                      setFieldErrors(prev => ({ ...prev, ngay_tra_thuc_te: undefined }))
+                    }
+                  }}
                   disabled={!isQuanLy || bienBan.trang_thai !== 'ChoDoiSoat'}
                 />
+                <FieldError error={fieldErrors.ngay_tra_thuc_te} />
               </div>
 
               <h4 style={{ color: 'var(--gray-800)', marginBottom: '12px' }}>📋 Danh sách đối soát tài sản</h4>
@@ -600,13 +623,19 @@ export default function TraPhong() {
 
                       <input
                         type="number"
-                        className="form-control"
+                        className={`input ${fieldErrors.ty_le_hoan_coc ? 'input-error' : ''}`}
                         min="0"
                         max="100"
                         value={tyLeHoanCoc}
-                        onChange={(e) => setTyLeHoanCoc(Math.min(100, Math.max(0, Number(e.target.value))))}
+                        onChange={(e) => {
+                          setTyLeHoanCoc(Math.min(100, Math.max(0, Number(e.target.value))))
+                          if (fieldErrors.ty_le_hoan_coc) {
+                            setFieldErrors(prev => ({ ...prev, ty_le_hoan_coc: undefined }))
+                          }
+                        }}
                         disabled={!isKeToan || bienBan.trang_thai !== 'ChoXacNhan'}
                       />
+                      <FieldError error={fieldErrors.ty_le_hoan_coc} />
                       <span style={{ fontSize: '12px', color: 'var(--gray-400)', display: 'block', marginTop: '4px' }}>
                         💡 <em>Tỷ lệ hoàn cọc tự động tính dựa trên thời gian lưu trú và trạng thái hợp đồng. Có thể sửa đổi thủ công nếu cần.</em>
                       </span>
@@ -616,33 +645,51 @@ export default function TraPhong() {
                       <label className="form-label" style={{ fontWeight: 600 }}>Tiền thuê còn nợ (đ):</label>
                       <input
                         type="number"
-                        className="form-control"
+                        className={`input ${fieldErrors.tien_thue_con_no ? 'input-error' : ''}`}
                         value={tienThueConNo}
-                        onChange={(e) => setTienThueConNo(Number(e.target.value))}
+                        onChange={(e) => {
+                          setTienThueConNo(Number(e.target.value))
+                          if (fieldErrors.tien_thue_con_no) {
+                            setFieldErrors(prev => ({ ...prev, tien_thue_con_no: undefined }))
+                          }
+                        }}
                         disabled={!isKeToan || bienBan.trang_thai !== 'ChoXacNhan'}
                       />
+                      <FieldError error={fieldErrors.tien_thue_con_no} />
                     </div>
 
                     <div className="form-group">
                       <label className="form-label" style={{ fontWeight: 600 }}>Tiền điện nước dịch vụ phát sinh (đ):</label>
                       <input
                         type="number"
-                        className="form-control"
+                        className={`input ${fieldErrors.tien_dien_nuoc_dich_vu ? 'input-error' : ''}`}
                         value={tienDienNuocDichVu}
-                        onChange={(e) => setTienDienNuocDichVu(Number(e.target.value))}
+                        onChange={(e) => {
+                          setTienDienNuocDichVu(Number(e.target.value))
+                          if (fieldErrors.tien_dien_nuoc_dich_vu) {
+                            setFieldErrors(prev => ({ ...prev, tien_dien_nuoc_dich_vu: undefined }))
+                          }
+                        }}
                         disabled={!isKeToan || bienBan.trang_thai !== 'ChoXacNhan'}
                       />
+                      <FieldError error={fieldErrors.tien_dien_nuoc_dich_vu} />
                     </div>
 
                     <div className="form-group">
                       <label className="form-label" style={{ fontWeight: 600 }}>Chi phí sửa chữa bồi thường (đ):</label>
                       <input
                         type="number"
-                        className="form-control"
+                        className={`input ${fieldErrors.chi_phi_sua_chua_boi_thuong ? 'input-error' : ''}`}
                         value={chiPhiSuaChuaBoiThuong}
-                        onChange={(e) => setChiPhiSuaChuaBoiThuong(Number(e.target.value))}
+                        onChange={(e) => {
+                          setChiPhiSuaChuaBoiThuong(Number(e.target.value))
+                          if (fieldErrors.chi_phi_sua_chua_boi_thuong) {
+                            setFieldErrors(prev => ({ ...prev, chi_phi_sua_chua_boi_thuong: undefined }))
+                          }
+                        }}
                         disabled={!isKeToan || bienBan.trang_thai !== 'ChoXacNhan'}
                       />
+                      <FieldError error={fieldErrors.chi_phi_sua_chua_boi_thuong} />
                       <span style={{ fontSize: '12px', color: 'var(--gray-400)', display: 'block', marginTop: '4px' }}>
                         Tổng chi phí bồi thường ước tính từ đối soát: <strong>{formatMoney(
                           auditList.reduce((sum, item) => sum + Number(item.chi_phi_boi_thuong || 0), 0)
@@ -654,11 +701,17 @@ export default function TraPhong() {
                       <label className="form-label" style={{ fontWeight: 600 }}>Tiền phạt vi phạm nội quy (đ):</label>
                       <input
                         type="number"
-                        className="form-control"
+                        className={`input ${fieldErrors.tien_phat_vi_pham ? 'input-error' : ''}`}
                         value={tienPhatViPham}
-                        onChange={(e) => setTienPhatViPham(Number(e.target.value))}
+                        onChange={(e) => {
+                          setTienPhatViPham(Number(e.target.value))
+                          if (fieldErrors.tien_phat_vi_pham) {
+                            setFieldErrors(prev => ({ ...prev, tien_phat_vi_pham: undefined }))
+                          }
+                        }}
                         disabled={!isKeToan || bienBan.trang_thai !== 'ChoXacNhan'}
                       />
+                      <FieldError error={fieldErrors.tien_phat_vi_pham} />
                     </div>
                   </div>
                 </div>

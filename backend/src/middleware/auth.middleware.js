@@ -101,7 +101,7 @@ export async function authenticate(req, res, next) {
 
     // Lookup user in the database
     const [nguoiDung] = await sql`
-      SELECT id, ho_ten, vai_tro, chi_nhanh_id
+      SELECT id, ho_ten, vai_tro, chi_nhanh_id, email
       FROM nguoi_dung_he_thong
       WHERE id = ${userId}
     `
@@ -120,7 +120,8 @@ export async function authenticate(req, res, next) {
       id: nguoiDung.id,
       ho_ten: nguoiDung.ho_ten,
       vai_tro: nguoiDung.vai_tro,
-      chi_nhanh_id: nguoiDung.chi_nhanh_id
+      chi_nhanh_id: nguoiDung.chi_nhanh_id,
+      email: nguoiDung.email
     }
 
     next()

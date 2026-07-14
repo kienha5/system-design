@@ -8,7 +8,8 @@ export const validateQuery = (schema) => {
   return (req, res, next) => {
     const result = schema.safeParse(req.query)
     if (!result.success) {
-      const messages = result.error.errors.map(err => {
+      const issues = result.error.issues || []
+      const messages = issues.map(err => {
         const field = err.path.join('.')
         return `${field}: ${err.message}`
       }).join(', ')
@@ -22,8 +23,12 @@ export const validateQuery = (schema) => {
       })
     }
     
-    // Assign parsed and coerced data back to req.query
-    req.query = result.data
+    // Override req.query on this request instance to return the parsed and coerced data
+    Object.defineProperty(req, 'query', {
+      value: result.data,
+      writable: true,
+      configurable: true
+    })
     next()
   }
 }
@@ -38,7 +43,8 @@ export const validateBody = (schema) => {
   return (req, res, next) => {
     const result = schema.safeParse(req.body)
     if (!result.success) {
-      const messages = result.error.errors.map(err => {
+      const issues = result.error.issues || []
+      const messages = issues.map(err => {
         const field = err.path.join('.')
         return `${field}: ${err.message}`
       }).join(', ')

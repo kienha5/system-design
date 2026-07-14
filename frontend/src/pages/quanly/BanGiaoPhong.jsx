@@ -6,6 +6,8 @@ import Toast from '../../components/shared/Toast'
 import { getHopDong } from '../../api/hopDong.api'
 import { getTaiSanPhong, taoBienBan, capNhatDanhSachTaiSan, xacNhanBanGiao, getBienBanByHopDong } from '../../api/bienBanBanGiao.api'
 import { supabase } from '../../lib/supabaseClient'
+import { FieldError } from '../../components/shared/FieldError'
+import { parseValidationErrors } from '../../utils/fieldNameMap'
 
 export default function BanGiaoPhong() {
   const { hopDongId } = useParams()
@@ -27,6 +29,7 @@ export default function BanGiaoPhong() {
   const [selectedFile, setSelectedFile] = useState(null)
   const [previewUrl, setPreviewUrl] = useState(null)
   const [agreeHandover, setAgreeHandover] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState({})
 
   // Toast notifications
   const [toast, setToast] = useState(null)
@@ -108,6 +111,7 @@ export default function BanGiaoPhong() {
     }
 
     setActionLoading(true)
+    setFieldErrors({})
     try {
       if (bienBan) {
         // Update existing report checklist
@@ -143,7 +147,13 @@ export default function BanGiaoPhong() {
       }
     } catch (err) {
       console.error(err)
-      showToast(err.response?.data?.error?.message || 'Lỗi khi ghi nhận biên bản.', 'danger')
+      if (err.code === 'VALIDATION_ERROR') {
+        const errors = parseValidationErrors(err)
+        setFieldErrors(errors)
+        showToast('Vui lòng kiểm tra lại các thông tin chưa hợp lệ.', 'warning')
+      } else {
+        showToast(err.response?.data?.error?.message || err.message || 'Lỗi khi ghi nhận biên bản.', 'danger')
+      }
     } finally {
       setActionLoading(false)
     }
@@ -287,12 +297,18 @@ export default function BanGiaoPhong() {
                   <div>
                     <label className="form-label">Ghi chú hiện trạng chung của phòng:</label>
                     <textarea 
-                      className="textarea" 
+                      className={`textarea ${fieldErrors.tinh_trang_phong ? 'input-error' : ''}`}
                       rows="2" 
                       placeholder="Ghi chú về trần, sàn, tường, hệ thống đèn, điều hòa, khóa cửa..."
                       value={tinhTrangPhong}
-                      onChange={(e) => setTinhTrangPhong(e.target.value)}
+                      onChange={(e) => {
+                        setTinhTrangPhong(e.target.value)
+                        if (fieldErrors.tinh_trang_phong) {
+                          setFieldErrors(prev => ({ ...prev, tinh_trang_phong: undefined }))
+                        }
+                      }}
                     />
+                    <FieldError error={fieldErrors.tinh_trang_phong} />
                   </div>
 
                   {/* Checklist Table */}

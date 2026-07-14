@@ -100,6 +100,7 @@ CREATE TABLE khach_hang (
 CREATE TABLE nguoi_dung_he_thong (
     id UUID PRIMARY KEY, -- Liên kết trực tiếp với auth.users của hệ thống xác thực (như Supabase)
     ho_ten VARCHAR(150) NOT NULL,
+    email VARCHAR(150),
     vai_tro vai_tro_nguoi_dung NOT NULL,
     chi_nhanh_id UUID REFERENCES chi_nhanh(id),
     created_at TIMESTAMPTZ DEFAULT NOW(),
