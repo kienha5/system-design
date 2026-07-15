@@ -13,7 +13,30 @@ import bienBanTraPhongRouter from './src/routes/bienBanTraPhong.routes.js'
 import thongKeRouter from './src/routes/thongKe.routes.js'
 
 import { requestTraceMiddleware } from './src/middleware/requestTrace.middleware.js'
-import { logDebug } from './src/utils/logger.js'
+import { logDebug, wrapServiceInPlace } from './src/utils/logger.js'
+
+import { authService } from './src/services/auth.service.js'
+import { bienBanBanGiaoService } from './src/services/bienBanBanGiao.service.js'
+import { bienBanTraPhongService } from './src/services/bienBanTraPhong.service.js'
+import { dieuKienCuTruService } from './src/services/dieuKienCuTru.service.js'
+import { hoaDonService } from './src/services/hoaDon.service.js'
+import { hopDongService } from './src/services/hopDong.service.js'
+import { nhuCauThueService } from './src/services/nhuCauThue.service.js'
+import { phieuDatCocService } from './src/services/phieuDatCoc.service.js'
+import { phongService } from './src/services/phong.service.js'
+import { thongKeService } from './src/services/thongKe.service.js'
+
+// Wrap services for tracing at startup
+wrapServiceInPlace('authService', authService)
+wrapServiceInPlace('bienBanBanGiaoService', bienBanBanGiaoService)
+wrapServiceInPlace('bienBanTraPhongService', bienBanTraPhongService)
+wrapServiceInPlace('dieuKienCuTruService', dieuKienCuTruService)
+wrapServiceInPlace('hoaDonService', hoaDonService)
+wrapServiceInPlace('hopDongService', hopDongService)
+wrapServiceInPlace('nhuCauThueService', nhuCauThueService)
+wrapServiceInPlace('phieuDatCocService', phieuDatCocService)
+wrapServiceInPlace('phongService', phongService)
+wrapServiceInPlace('thongKeService', thongKeService)
 
 const app = express()
 const PORT = process.env.PORT || 3000

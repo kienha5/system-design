@@ -1,6 +1,26 @@
 import { AsyncLocalStorage } from 'async_hooks'
+import fs from 'fs'
+import path from 'path'
 
 export const loggerStorage = new AsyncLocalStorage()
+
+const LOGS_DIR = path.join(process.cwd(), 'logs')
+const LOG_FILE = path.join(LOGS_DIR, 'debug-trace.log')
+
+function writeLogToFile(logLine) {
+  try {
+    if (!fs.existsSync(LOGS_DIR)) {
+      fs.mkdirSync(LOGS_DIR, { recursive: true })
+    }
+    fs.appendFile(LOG_FILE, logLine + '\n', (err) => {
+      if (err) {
+        console.error('[LOGGER_ERROR] Failed to write log to file:', err)
+      }
+    })
+  } catch (err) {
+    console.error('[LOGGER_ERROR] Failed to write log to file:', err)
+  }
+}
 
 // Helper to filter out sensitive keys recursively
 export function sanitizeData(data) {
@@ -37,26 +57,27 @@ export function logDebug(message, context = {}) {
     context: sanitizeData(context)
   }
 
-  console.log(JSON.stringify(logPayload))
+  const logLine = JSON.stringify(logPayload)
+  console.log(logLine)
+  writeLogToFile(logLine)
 }
 
-export function traceService(serviceName, serviceObject) {
-  const traced = {}
-  for (const [key, value] of Object.entries(serviceObject)) {
+export function wrapServiceInPlace(serviceName, serviceInstance) {
+  for (const [key, value] of Object.entries(serviceInstance)) {
     if (typeof value === 'function') {
-      traced[key] = async function(...args) {
+      const originalMethod = value
+      serviceInstance[key] = async function(...args) {
         logDebug(`[SERVICE_START] Calling ${serviceName}.${key}`, {
           arguments: args
         })
         try {
-          const result = await value.apply(this, args)
+          const result = await originalMethod.apply(this, args)
           
           // Summarize array results to keep log trace size manageable
           let loggedResult = result
           if (Array.isArray(result)) {
             loggedResult = { count: result.length, summary: 'Array' }
           } else if (result && typeof result === 'object') {
-            // If it has multiple rows (like paginated data)
             if (Array.isArray(result.rooms)) {
               loggedResult = { ...result, rooms: { count: result.rooms.length, summary: 'Array' } }
             }
@@ -76,9 +97,6 @@ export function traceService(serviceName, serviceObject) {
           throw err
         }
       }
-    } else {
-      traced[key] = value
     }
   }
-  return traced
 }

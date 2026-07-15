@@ -1,10 +1,9 @@
 import sql from '../db.js'
-import { traceService } from '../utils/logger.js'
 
 /**
  * Service handling rental request intakes and viewing schedules.
  */
-const service = {
+export const nhuCauThueService = {
   /**
    * Create a new rental request, upserting the customer record by phone number.
    * Runs inside an optional database transaction.
@@ -418,6 +417,4 @@ const service = {
     `
   }
 }
-
-export const nhuCauThueService = traceService('nhuCauThueService', service)
 

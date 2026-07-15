@@ -1,13 +1,12 @@
 import sql from '../db.js'
 import { phongService } from './phong.service.js'
-import { traceService } from '../utils/logger.js'
 
 export const SYSTEM_USER_ID = '00000000-0000-0000-0000-000000000000'
 
 /**
  * Service handling room deposit sheets.
  */
-const service = {
+export const phieuDatCocService = {
   /**
    * Check if a deposit sheet is expired (pending payment for > 24 hours).
    * If expired, update status to 'HetHan' and release associated bed(s) back to 'Trong'.
@@ -572,6 +571,4 @@ const service = {
     }
   }
 }
-
-export const phieuDatCocService = traceService('phieuDatCocService', service)
 

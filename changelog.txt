@@ -3,6 +3,21 @@
 ========================================================================
 
 ------------------------------------------------------------------------
+Version: v0.8.1
+Date: 2026-07-15
+Description: Structured Log Syncing, File Logging, and Service Wrapper Improvements
+------------------------------------------------------------------------
+* Request ID Synchronization
+  - Frontend generates request UUID (`X-Request-ID`) on every API request and logs it.
+  - Backend reuses the frontend request ID if present, establishing 1-to-1 correlation across client/server log pipelines.
+* Centralized Service Wrapper
+  - Replaced manual file-based service tracing with a global startup routine (`wrapServiceInPlace`) in index.js, automatically tracing all 10 service layers in-place.
+* File Logging & Ignored logs/ folder
+  - Appends JSON structured logs to `backend/logs/debug-trace.log` when `DEBUG_TRACE=true` is enabled.
+  - Added `logs/` to `.gitignore` to prevent tracking debug logs.
+  - Created `backend/.env.example` documenting environment variables and warning against enabling `DEBUG_TRACE` in production.
+
+------------------------------------------------------------------------
 Version: v0.8.0
 Date: 2026-07-15
 Description: Structured E2E Debug Tracing Log System

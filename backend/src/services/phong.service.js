@@ -1,10 +1,9 @@
 import sql from '../db.js'
-import { traceService } from '../utils/logger.js'
 
 /**
  * Service handling room and bed inquiries and status transitions.
  */
-const service = {
+export const phongService = {
   /**
    * Search rooms based on criteria and compute available beds.
    * 
@@ -387,5 +386,3 @@ const service = {
     }
   }
 }
-
-export const phongService = traceService('phongService', service)
