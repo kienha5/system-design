@@ -4,4 +4,6 @@ node_modules
 
 /src/generated/prisma
 src/test-db.js
+logs/
+
 

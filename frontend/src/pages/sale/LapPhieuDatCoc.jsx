@@ -7,10 +7,12 @@ import TraCuuPhong from '../../components/shared/TraCuuPhong'
 import { getNhuCauThue, searchNhuCauThueByPhone } from '../../api/nhuCauThue.api'
 import { createPhieuDatCoc } from '../../api/phieuDatCoc.api'
 import { parseValidationErrors } from '../../utils/fieldNameMap'
+import { useAuth } from '../../context/AuthContext'
 
 export default function LapPhieuDatCoc() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   const [activeStep, setActiveStep] = useState(1) // 1: Tìm yêu cầu, 2: Chọn phòng/giường, 3: Xác nhận & Tạo phiếu, 4: Thành công
   
@@ -142,7 +144,7 @@ export default function LapPhieuDatCoc() {
       phong_id: selectedRoom.id,
       giuong_id: selectedBed ? selectedBed.id : null,
       so_giuong_thue: soGiuongThue,
-      chi_nhanh_id: selectedRoom.chi_nhanh?.id || selectedRequest.chi_nhanh_id || selectedRoom.chi_nhanh_id
+      chi_nhanh_id: user?.chi_nhanh_id || selectedRoom.chi_nhanh?.id || selectedRoom.chi_nhanh_id
     }
 
     try {

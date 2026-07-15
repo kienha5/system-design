@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { authenticate, requireRole } from '../middleware/auth.middleware.js'
-import * as thongKeService from '../services/thongKe.service.js'
+import { thongKeService } from '../services/thongKe.service.js'
 
 const router = Router()
 
