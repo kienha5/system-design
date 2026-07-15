@@ -60,7 +60,7 @@ VITE_API_BASE_URL=http://localhost:3000/api/v1
 ## 4. Khởi Tạo Cơ Sở Dữ Liệu & Dữ Liệu Mẫu
 
 ### 4.1. Tạo cấu trúc bảng (Schema SQL)
-Nếu cần khởi tạo cơ sở dữ liệu từ đầu, copy nội dung của file [docs/create_database.sql](file:///c:/Users/LOQ/Documents/system_design/phong-ktx/docs/create_database.sql) và chạy trực tiếp trong giao diện **SQL Editor** trên Supabase Dashboard.
+Nếu cần khởi tạo cơ sở dữ liệu từ đầu, copy nội dung của file và chạy trực tiếp trong giao diện **SQL Editor** trên Supabase Dashboard.
 
 ### 4.2. Cấu hình Supabase Storage
 Cơ chế đính kèm chứng từ chuyển khoản (UC07) và biên bản bàn giao có chữ ký (UC11) yêu cầu cấu hình Storage bucket:
