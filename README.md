@@ -16,7 +16,7 @@ Thực hiện chạy các lệnh sau trong terminal:
 
 ```bash
 # 1. Clone project về máy cá nhân
-git clone <url_repo_phong_ktx>
+git clone https://github.com/kienha5/system-design.git
 cd phong-ktx
 
 # 2. Cài đặt các package phụ thuộc cho Backend
