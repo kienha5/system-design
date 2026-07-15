@@ -9,10 +9,16 @@ const axiosClient = axios.create({
 // Mask sensitive keys recursively
 function sanitizeData(data) {
   if (!data) return data
-  if (Array.isArray(data)) {
-    return data.map(item => sanitizeData(item))
-  }
+  
   if (typeof data === 'object') {
+    if (typeof data.toJSON === 'function') {
+      return data.toJSON()
+    }
+    
+    if (Array.isArray(data)) {
+      return data.map(item => sanitizeData(item))
+    }
+    
     const sanitized = {}
     for (const [key, value] of Object.entries(data)) {
       const lowerKey = key.toLowerCase()
@@ -24,6 +30,7 @@ function sanitizeData(data) {
     }
     return sanitized
   }
+  
   return data
 }
 
@@ -45,6 +52,8 @@ function getCallerInfo() {
   return { file: 'unknown', function: 'unknown' }
 }
 
+let logSequence = 0
+
 function logDebug(message, context = {}) {
   if (import.meta.env.VITE_DEBUG_TRACE !== 'true') return
   
@@ -52,6 +61,7 @@ function logDebug(message, context = {}) {
   const { requestId: _, ...cleanContext } = context
   
   const logPayload = {
+    sequence: ++logSequence,
     timestamp: new Date().toISOString(),
     level: 'DEBUG',
     requestId,

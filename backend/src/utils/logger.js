@@ -25,10 +25,16 @@ function writeLogToFile(logLine) {
 // Helper to filter out sensitive keys recursively
 export function sanitizeData(data) {
   if (!data) return data
-  if (Array.isArray(data)) {
-    return data.map(item => sanitizeData(item))
-  }
+  
   if (typeof data === 'object') {
+    if (typeof data.toJSON === 'function') {
+      return data.toJSON()
+    }
+    
+    if (Array.isArray(data)) {
+      return data.map(item => sanitizeData(item))
+    }
+    
     const sanitized = {}
     for (const [key, value] of Object.entries(data)) {
       if (['password', 'token', 'access_token', 'so_cmnd_cccd', 'cccd'].includes(key)) {
@@ -39,8 +45,11 @@ export function sanitizeData(data) {
     }
     return sanitized
   }
+  
   return data
 }
+
+let logSequence = 0
 
 export function logDebug(message, context = {}) {
   if (process.env.DEBUG_TRACE !== 'true') return
@@ -50,6 +59,7 @@ export function logDebug(message, context = {}) {
   const timestamp = new Date().toISOString()
 
   const logPayload = {
+    sequence: ++logSequence,
     timestamp,
     level: 'DEBUG',
     requestId,

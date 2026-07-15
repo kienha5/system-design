@@ -3,6 +3,16 @@
 ========================================================================
 
 ------------------------------------------------------------------------
+Version: v0.8.2
+Date: 2026-07-15
+Description: Fix Date/Decimal Serialization and Add Tracing Sequence IDs
+------------------------------------------------------------------------
+* Date/Custom Objects Serialization
+  - Fixed Date and Decimal object serialization inside the recursive `sanitizeData` filter by checking and calling `.toJSON()` before traversing child keys. Dates and decimal values are now correctly serialized rather than returning empty `{}`.
+* Tracing Sequence IDs
+  - Added an atomic auto-incrementing `sequence` counter to both frontend and backend JSON log payloads. This resolves race condition logging ordering issues where logs are written out-of-order within the same millisecond timestamp.
+
+------------------------------------------------------------------------
 Version: v0.8.1
 Date: 2026-07-15
 Description: Structured Log Syncing, File Logging, and Service Wrapper Improvements
