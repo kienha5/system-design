@@ -3,6 +3,23 @@
 ========================================================================
 
 ------------------------------------------------------------------------
+Version: v0.8.0
+Date: 2026-07-15
+Description: Structured E2E Debug Tracing Log System
+------------------------------------------------------------------------
+* Structured E2E Request Tracing
+  - Backend requestTraceMiddleware assigns a UUID `request_id` context to each HTTP lifecycle.
+  - Integrates Node.js AsyncLocalStorage to share `request_id` context across middlewares, validators, and services.
+  - Automatically traces service calls (entry, exit, errors) using a proxy wrapper helper (`traceService`), summarizing output arrays to prevent log bloat.
+  - Outputs detailed Zod error objects (failing fields, raw inputs) in structured JSON format.
+  - Frontend axiosClient intercepts request/response latency and dynamically extracts calling source code components/functions using Call Stack tracing.
+  - Sanitizes sensitive keys (password, access_token, so_cmnd_cccd) across both frontend and backend logs.
+  - Controlled by environment variables `DEBUG_TRACE=true` (backend) and `VITE_DEBUG_TRACE=true` (frontend).
+* Database & Edge Case fixes
+  - Seed script updated to backfill `email` in the `nguoi_dung_he_thong` table.
+  - Verified edge case for multi-branch Managers (where `chi_nhanh_id = null` allows searching all branches).
+
+------------------------------------------------------------------------
 Version: v0.7.1
 Date: 2026-07-14
 Description: Bug Fixes in E2E Happy Path Flow (UC04 - UC05 - UC06)

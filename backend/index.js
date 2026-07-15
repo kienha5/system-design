@@ -12,8 +12,13 @@ import bienBanBanGiaoRouter from './src/routes/bienBanBanGiao.routes.js'
 import bienBanTraPhongRouter from './src/routes/bienBanTraPhong.routes.js'
 import thongKeRouter from './src/routes/thongKe.routes.js'
 
+import { requestTraceMiddleware } from './src/middleware/requestTrace.middleware.js'
+import { logDebug } from './src/utils/logger.js'
+
 const app = express()
 const PORT = process.env.PORT || 3000
+
+app.use(requestTraceMiddleware)
 
 app.use(cors({
   origin: '*', // Hỗ trợ mọi nguồn gốc trong môi trường phát triển
@@ -34,11 +39,28 @@ app.use('/api/v1', thongKeRouter)
 
 // Middleware xử lý lỗi tập trung
 app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err)
-  res.status(err.status || 500).json({
+  const status = err.status || err.statusCode || 500
+  const errorCode = err.code || 'SYSTEM_ERROR'
+  
+  logDebug(`[HTTP_RESPONSE_ERROR] ${req.method} ${req.originalUrl} - Status: ${status} - Error: ${errorCode}`, {
+    method: req.method,
+    url: req.originalUrl,
+    statusCode: status,
+    error: {
+      code: errorCode,
+      message: err.message
+    }
+  })
+
+  // Only log full system stack errors to console error when they are internal server errors
+  if (status === 500) {
+    console.error('Unhandled error:', err)
+  }
+
+  res.status(status).json({
     success: false,
     error: {
-      code: err.code || 'SYSTEM_ERROR',
+      code: errorCode,
       message: err.message || 'Lỗi hệ thống không xác định.'
     }
   })

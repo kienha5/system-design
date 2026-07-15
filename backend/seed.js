@@ -110,9 +110,9 @@ async function main() {
 
       // Thêm vào database nguoi_dung_he_thong
       const [dbUser] = await sql`
-        INSERT INTO nguoi_dung_he_thong (id, ho_ten, vai_tro, chi_nhanh_id)
-        VALUES (${user.id}, ${actor.ho_ten}, ${actor.vai_tro}, ${branch.id})
-        RETURNING id, ho_ten, vai_tro
+        INSERT INTO nguoi_dung_he_thong (id, ho_ten, vai_tro, chi_nhanh_id, email)
+        VALUES (${user.id}, ${actor.ho_ten}, ${actor.vai_tro}, ${branch.id}, ${actor.email})
+        RETURNING id, ho_ten, vai_tro, email
       `
       console.log(`Đã thêm vào DB nguoi_dung_he_thong: ${dbUser.ho_ten} (${dbUser.vai_tro})`)
     }
