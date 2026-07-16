@@ -56,30 +56,16 @@ router.get(
 )
 
 /**
- * @route PATCH /api/v1/phieu-dat-coc/:id/chung-tu
- * @desc Submit payment slip for a deposit sheet
- * @access Private (Sale only)
- */
-router.patch(
-  '/phieu-dat-coc/:id/chung-tu',
-  authenticate,
-  requireRole('Sale'),
-  validateParams(uuidParamSchema),
-  validateBody(nopChungTuSchema),
-  phieuDatCocController.nopChungTu
-)
-
-/**
  * @route PATCH /api/v1/phieu-dat-coc/:id/xac-nhan
- * @desc Confirm or reject a deposit payment
- * @access Private (QuanLy only)
+ * @desc Confirm a deposit payment (Sale only)
+ * @access Private (Sale only)
  */
 router.patch(
   '/phieu-dat-coc/:id/xac-nhan',
   authenticate,
-  requireRole('QuanLy'),
+  requireRole('Sale'),
   validateParams(uuidParamSchema),
-  validateBody(xacNhanPhieuSchema),
+  validateBody(nopChungTuSchema),
   phieuDatCocController.xacNhan
 )
 

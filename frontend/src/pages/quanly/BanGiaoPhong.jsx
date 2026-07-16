@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import Sidebar from '../../components/shared/Sidebar'
 import Header from '../../components/shared/Header'
 import Toast from '../../components/shared/Toast'
-import { getHopDong } from '../../api/hopDong.api'
+import { getHopDong, searchHopDong } from '../../api/hopDong.api'
 import { getTaiSanPhong, taoBienBan, capNhatDanhSachTaiSan, xacNhanBanGiao, getBienBanByHopDong } from '../../api/bienBanBanGiao.api'
 import { supabase } from '../../lib/supabaseClient'
 import { FieldError } from '../../components/shared/FieldError'
@@ -20,6 +20,11 @@ export default function BanGiaoPhong() {
   const [actionLoading, setActionLoading] = useState(false)
   const [contract, setContract] = useState(null)
   const [bienBan, setBienBan] = useState(null)
+
+  // Danh sách hợp đồng khi chọn 'select'
+  const [contracts, setContracts] = useState([])
+  const [loadingContracts, setLoadingContracts] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
 
   // Step 1: Checklist & Notes
   const [tinhTrangPhong, setTinhTrangPhong] = useState('')
@@ -38,6 +43,29 @@ export default function BanGiaoPhong() {
     setToast({ message, type })
   }
 
+  // Load contracts list when hopDongId is 'select'
+  useEffect(() => {
+    const fetchContracts = async () => {
+      setLoadingContracts(true)
+      try {
+        const res = await searchHopDong(searchQuery)
+        if (res.success) {
+          // Lọc các hợp đồng ở trạng thái Hiệu Lực
+          setContracts(res.data.filter(c => c.trang_thai === 'HieuLuc'))
+        }
+      } catch (err) {
+        console.error(err)
+        showToast('Không thể tải danh sách hợp đồng.', 'danger')
+      } finally {
+        setLoadingContracts(false)
+      }
+    }
+
+    if (hopDongId === 'select') {
+      fetchContracts()
+    }
+  }, [hopDongId, searchQuery])
+
   // Load contract and handover details or assets on mount
   useEffect(() => {
     const loadHandoverData = async () => {
@@ -55,7 +83,18 @@ export default function BanGiaoPhong() {
           const currentBBG = existingBBGRes.data
           setBienBan(currentBBG)
           setTinhTrangPhong(currentBBG.tinh_trang_phong || '')
-          setAssetsList(currentBBG.danh_sach_tai_san)
+          
+          let parsedAssets = currentBBG.danh_sach_tai_san
+          if (typeof parsedAssets === 'string') {
+            try {
+              parsedAssets = JSON.parse(parsedAssets)
+            } catch (e) {
+              console.error('Failed to parse assets list JSON:', e)
+              parsedAssets = []
+              showToast('Cảnh báo: Định dạng dữ liệu tài sản bàn giao bị lỗi (JSON parse error). Vui lòng liên hệ hỗ trợ!', 'warning')
+            }
+          }
+          setAssetsList(parsedAssets || [])
           
           if (currentBBG.khach_da_ky_xac_nhan) {
             // Already finalized
@@ -68,7 +107,16 @@ export default function BanGiaoPhong() {
           // 3. If no handover report exists, load default assets checklist for this room
           const assetsRes = await getTaiSanPhong(currentContract.phong_id)
           if (assetsRes.success) {
-            setAssetsList(assetsRes.data)
+            let defaultAssets = assetsRes.data
+            if (typeof defaultAssets === 'string') {
+              try {
+                defaultAssets = JSON.parse(defaultAssets)
+              } catch (e) {
+                defaultAssets = []
+                showToast('Cảnh báo: Định dạng danh mục tài sản gốc bị lỗi (JSON parse error). Vui lòng liên hệ hỗ trợ!', 'warning')
+              }
+            }
+            setAssetsList(defaultAssets || [])
           }
         }
       } catch (err) {
@@ -252,15 +300,73 @@ export default function BanGiaoPhong() {
               Đang tải thông tin biên bản...
             </div>
           ) : hopDongId === 'select' ? (
-            <div className="card" style={{ textAlign: 'center', padding: '48px', color: 'var(--gray-400)' }}>
-              <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔑</div>
-              <h3>Nghiệp vụ Giao phòng cho khách</h3>
-              <p style={{ fontSize: '14px', maxWidth: '400px', margin: '8px auto 0 auto' }}>
-                Giao phòng cho khách được thực hiện sau khi hợp đồng thuê có hiệu lực và Kế toán đã thu đủ tiền phòng tháng đầu.
+            <div className="card" style={{ animation: 'fadeIn 0.3s ease' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px', color: 'var(--gray-800)' }}>
+                🏠 Chọn hợp đồng để bàn giao phòng
+              </h2>
+              <p style={{ fontSize: '13px', color: 'var(--gray-500)', marginBottom: '20px' }}>
+                Chọn hợp đồng mới ở trạng thái <strong>Hiệu Lực</strong> (và đã thanh toán kỳ đầu) để thực hiện kiểm kê tài sản và bàn giao chìa khóa cho khách dời vào.
               </p>
-              <button className="btn btn-outline" onClick={() => navigate('/dashboard-quan-ly')} style={{ marginTop: '20px' }}>
-                🏠 Về Dashboard Quản lý
-              </button>
+
+              <div style={{ marginBottom: '20px', maxWidth: '400px' }}>
+                <input 
+                  type="text" 
+                  className="input" 
+                  placeholder="Tìm theo mã HĐ, tên khách, SĐT..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+
+              {loadingContracts ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: 'var(--gray-500)' }}>
+                  Đang tải danh sách hợp đồng...
+                </div>
+              ) : contracts.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: 'var(--gray-400)' }}>
+                  📭 Không tìm thấy hợp đồng nào cần xử lý.
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="room-table">
+                    <thead>
+                      <tr>
+                        <th>Mã hợp đồng</th>
+                        <th>Khách đại diện</th>
+                        <th>Số điện thoại</th>
+                        <th>Phòng</th>
+                        <th>Ngày bắt đầu</th>
+                        <th>Trạng thái</th>
+                        <th>Hành động</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {contracts.map((c) => (
+                        <tr key={c.id}>
+                          <td><strong>{c.ma_hop_dong}</strong></td>
+                          <td>{c.ten_khach_hang}</td>
+                          <td>{c.sdt_khach_hang}</td>
+                          <td>Phòng {c.ma_phong}</td>
+                          <td>{new Date(c.ngay_bat_dau).toLocaleDateString('vi-VN')}</td>
+                          <td>
+                            <span className="badge status-pending" style={{ background: '#dcfce7', color: '#15803d', fontWeight: 'bold' }}>
+                              Hiệu Lực
+                            </span>
+                          </td>
+                          <td>
+                            <button 
+                              className="btn btn-primary btn-sm"
+                              onClick={() => navigate(`/ban-giao-phong/${c.id}`)}
+                            >
+                              Bàn giao ➔
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           ) : !contract ? (
             <div className="card" style={{ textAlign: 'center', padding: '48px', color: 'var(--danger)' }}>

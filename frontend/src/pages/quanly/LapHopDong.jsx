@@ -79,7 +79,7 @@ export default function LapHopDong() {
           khach_hang_id: fullSlip.khach_hang_id,
           ho_ten: fullSlip.khach_hang_ho_ten,
           so_dien_thoai: fullSlip.khach_hang_so_dien_thoai,
-          so_cmnd_cccd: fullSlip.khach_hang_email, // Wait, let's look at the customer details
+          so_cmnd_cccd: fullSlip.khach_hang_so_cmnd_cccd || '',
           gioi_tinh: fullSlip.khach_hang_gioi_tinh || 'Nam',
           giuong_id: fullSlip.giuong_id || '',
           isPrimary: true

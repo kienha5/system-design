@@ -65,11 +65,11 @@ Trống ──[LapPhieuDatCoc]──► Chờ đặt cọc ──[GhiNhanDatCoc]
 
 | # | Mã UC | Tên | Actor chính |
 |---|---|---|---|
-| 1 | `DangNhap` | Đăng nhập | Sale, Quản lý, Kế toán |
-| 2 | `TraCuuPhong` | Tra cứu phòng/giường | Sale, Quản lý |
-| 3 | `CapNhatTrangThaiPhong` | Cập nhật trạng thái phòng (thủ công) | Quản lý |
-| 4 | `TiepNhanYeuCauThue` | Tiếp nhận yêu cầu thuê | Sale |
-| 5 | `DatLichXemPhong` | Đặt lịch xem phòng | Sale |
+| 1 | `DangNhap` | Đăng nhập | Sale, Quản lý, Kế toán | Done
+| 2 | `TraCuuPhong` | Tra cứu phòng/giường | Sale, Quản lý | Done
+| 3 | `CapNhatTrangThaiPhong` | Cập nhật trạng thái phòng (thủ công) | Quản lý | chưa làm xong
+| 4 | `TiepNhanYeuCauThue` | Tiếp nhận yêu cầu thuê | Sale | Done
+| 5 | `DatLichXemPhong` | Đặt lịch xem phòng | Sale | Done
 | 6 | `LapPhieuDatCoc` | Lập phiếu đặt cọc + tính tiền cọc | Sale |
 | 7 | `GhiNhanDatCoc` | Ghi nhận đặt cọc (sau khi quản lý xác nhận chứng từ) | Sale |
 | 8 | `LapHopDongThue` | Lập hợp đồng thuê | Quản lý |

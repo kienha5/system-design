@@ -37,8 +37,8 @@ Bảng phân quyền tổng quát (chi tiết từng UC xem mục 2 và file `sp
 
 | Vai trò | Nhóm chức năng được phép |
 |---|---|
-| Sale | Tra cứu phòng/giường, tiếp nhận yêu cầu thuê, đặt lịch xem phòng, lập phiếu đặt cọc, ghi nhận chứng từ cọc, đăng ký trả phòng |
-| QuanLy | Tra cứu phòng/giường, cập nhật trạng thái phòng/giường, xác nhận chứng từ cọc, lập hợp đồng, kiểm tra điều kiện cư trú, bàn giao phòng, đối soát tài sản, thanh lý hợp đồng |
+| Sale | Tra cứu phòng/giường, tiếp nhận yêu cầu thuê, đặt lịch xem phòng, lập phiếu đặt cọc, ghi nhận và xác nhận đặt cọc, đăng ký trả phòng |
+| QuanLy | Tra cứu phòng/giường, cập nhật trạng thái phòng/giường, lập hợp đồng, kiểm tra điều kiện cư trú, bàn giao phòng, đối soát tài sản, thanh lý hợp đồng |
 | KeToan | Tính tiền cọc (nội bộ trong UC06), xác nhận thanh toán kỳ đầu, khấu trừ chi phí phát sinh |
 
 > Tra cứu phòng (`GET /phong`, `GET /giuong`) cho phép tất cả vai trò.
@@ -127,7 +127,7 @@ Dùng `zod` ở middleware validate trước khi vào controller — file `src/v
 | UC04 TiepNhanYeuCauThue | `POST /nhu-cau-thue` | POST | Sale | ⬜ |
 | UC05 DatLichXemPhong | `PATCH /nhu-cau-thue/:id/lich-hen` | PATCH | Sale | ⬜ |
 | UC06 LapPhieuDatCoc | `POST /phieu-dat-coc` | POST | Sale | ⬜ |
-| UC07 GhiNhanDatCoc | `PATCH /phieu-dat-coc/:id/xac-nhan` | PATCH | Sale (ghi nhận chứng từ) + QuanLy (xác nhận hợp lệ — xem note) | ⬜ |
+| UC07 GhiNhanDatCoc | `PATCH /phieu-dat-coc/:id/xac-nhan` | PATCH | Sale | ⬜ |
 | UC08 LapHopDongThue | `POST /hop-dong` | POST | QuanLy | ⬜ |
 | UC09 KiemTraDieuKienCuTru | `POST /phieu-dat-coc/:id/kiem-tra-dieu-kien` | POST | QuanLy | ⬜ |
 | UC10 ThanhToanKyDau | `POST /hoa-don` `PATCH /hoa-don/:id/xac-nhan-thanh-toan` | POST PATCH | KeToan | ⬜ |
@@ -137,9 +137,8 @@ Dùng `zod` ở middleware validate trước khi vào controller — file `src/v
 | UC14 KhauTruChiPhi | `PATCH /bien-ban-tra-phong/:id/khau-tru` | PATCH | KeToan | ⬜ |
 | UC15 ThanhLyHopDong | `PATCH /hop-dong/:id/thanh-ly` | PATCH | QuanLy | ⬜ |
 
-**Note UC07:** Theo PDF, UC07 có 2 bước riêng biệt:
-- Sale nhập chứng từ và gọi `PATCH /phieu-dat-coc/:id/xac-nhan` với body `{ chung_tu_url, phuong_thuc_thanh_toan }`.
-- Quản lý đối chiếu và xác nhận hợp lệ — có thể dùng cùng endpoint với field `nguoi_xac_nhan_id` được set từ `req.user.id` khi Quản lý gọi, hoặc tách thành 2 endpoint riêng. Quyết định cụ thể để lại cho file `specs/UC07_GhiNhanDatCoc.md`.
+**Note UC07:** Theo đặc tả gốc `17_BaoCao.html`, UC07 chỉ có duy nhất 1 actor là nhân viên Sale thực hiện ghi nhận thông tin thanh toán cọc và xác nhận. Khi Sale xác nhận thành công, trạng thái phiếu cọc đổi thành `DaThanhToan` và phòng/giường lập tức chuyển sang trạng thái `DaDatCoc` (không qua bước duyệt online riêng biệt của Quản lý).
+
 
 **Note UC09:** Endpoint dùng `phieu_dat_coc_id` (không phải `hop_dong_id`) vì UC09 được gọi *trong quá trình lập HĐ*, trước khi HĐ được tạo trong DB. Input là phiếu cọc + danh sách khách cùng giấy tờ; output là kết quả đủ/không đủ điều kiện.
 

@@ -182,7 +182,11 @@ export default function DashboardKeToan() {
                       <button 
                         className="btn btn-primary btn-sm"
                         onClick={() => {
-                          showToast('Vui lòng thực hiện tác vụ này từ danh sách tương ứng của Quản lý hoặc Sale.', 'warning')
+                          if (item.id === 1) {
+                            navigate('/thanh-toan-ky-dau/select')
+                          } else if (item.id === 2) {
+                            navigate('/tra-phong/select')
+                          }
                         }}
                       >
                         Xử lý ➔

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import Sidebar from '../../components/shared/Sidebar'
 import Header from '../../components/shared/Header'
 import Toast from '../../components/shared/Toast'
-import { getHopDong } from '../../api/hopDong.api'
+import { getHopDong, searchHopDong } from '../../api/hopDong.api'
 import { taoHoaDon, xacNhanThanhToan } from '../../api/hoaDon.api'
 import { FieldError } from '../../components/shared/FieldError'
 import { parseValidationErrors } from '../../utils/fieldNameMap'
@@ -19,6 +19,11 @@ export default function ThanhToanKyDau() {
   const [actionLoading, setActionLoading] = useState(false)
   const [contract, setContract] = useState(null)
   const [invoice, setInvoice] = useState(null)
+
+  // Danh sách hợp đồng khi chọn 'select'
+  const [contracts, setContracts] = useState([])
+  const [loadingContracts, setLoadingContracts] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
 
   // Step 1: Input states
   const [tienDien, setTienDien] = useState(0)
@@ -57,6 +62,29 @@ export default function ThanhToanKyDau() {
       fetchContractDetails()
     }
   }, [hopDongId])
+
+  // Load contracts list when hopDongId is 'select'
+  useEffect(() => {
+    const fetchContracts = async () => {
+      setLoadingContracts(true)
+      try {
+        const res = await searchHopDong(searchQuery)
+        if (res.success) {
+          // Lọc các hợp đồng ở trạng thái Hiệu Lực
+          setContracts(res.data.filter(c => c.trang_thai === 'HieuLuc'))
+        }
+      } catch (err) {
+        console.error(err)
+        showToast('Không thể tải danh sách hợp đồng.', 'danger')
+      } finally {
+        setLoadingContracts(false)
+      }
+    }
+
+    if (hopDongId === 'select') {
+      fetchContracts()
+    }
+  }, [hopDongId, searchQuery])
 
   // Compute values
   const validMembersCount = contract?.thanh_vien?.filter(m => m.dat_dieu_kien_cu_tru)?.length || 0
@@ -152,15 +180,73 @@ export default function ThanhToanKyDau() {
               Đang tải dữ liệu hợp đồng...
             </div>
           ) : hopDongId === 'select' ? (
-            <div className="card" style={{ textAlign: 'center', padding: '48px', color: 'var(--gray-400)' }}>
-              <div style={{ fontSize: '48px', marginBottom: '16px' }}>💳</div>
-              <h3>Nghiệp vụ Thu Tiền Tháng Đầu</h3>
-              <p style={{ fontSize: '14px', maxWidth: '400px', margin: '8px auto 0 auto' }}>
-                Tiến trình thu tiền tháng đầu được kích hoạt từ flow quản lý sau khi lập hợp đồng. Vui lòng quay lại danh sách hoặc yêu cầu Quản lý dẫn link thực hiện.
+            <div className="card" style={{ animation: 'fadeIn 0.3s ease' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px', color: 'var(--gray-800)' }}>
+                📋 Chọn hợp đồng để thu tiền tháng đầu
+              </h2>
+              <p style={{ fontSize: '13px', color: 'var(--gray-500)', marginBottom: '20px' }}>
+                Chọn hợp đồng mới ở trạng thái <strong>Hiệu Lực</strong> để lập hóa đơn điện nước và xác nhận thu tiền phòng tháng đầu.
               </p>
-              <button className="btn btn-outline" onClick={() => navigate('/dashboard-ke-toan')} style={{ marginTop: '20px' }}>
-                🏠 Về Dashboard Kế toán
-              </button>
+
+              <div style={{ marginBottom: '20px', maxWidth: '400px' }}>
+                <input 
+                  type="text" 
+                  className="input" 
+                  placeholder="Tìm theo mã HĐ, tên khách, SĐT..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+
+              {loadingContracts ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: 'var(--gray-500)' }}>
+                  Đang tải danh sách hợp đồng...
+                </div>
+              ) : contracts.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: 'var(--gray-400)' }}>
+                  📭 Không tìm thấy hợp đồng nào cần xử lý.
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="room-table">
+                    <thead>
+                      <tr>
+                        <th>Mã hợp đồng</th>
+                        <th>Khách đại diện</th>
+                        <th>Số điện thoại</th>
+                        <th>Phòng</th>
+                        <th>Ngày bắt đầu</th>
+                        <th>Trạng thái</th>
+                        <th>Hành động</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {contracts.map((c) => (
+                        <tr key={c.id}>
+                          <td><strong>{c.ma_hop_dong}</strong></td>
+                          <td>{c.ten_khach_hang}</td>
+                          <td>{c.sdt_khach_hang}</td>
+                          <td>Phòng {c.ma_phong}</td>
+                          <td>{new Date(c.ngay_bat_dau).toLocaleDateString('vi-VN')}</td>
+                          <td>
+                            <span className="badge status-pending" style={{ background: '#dcfce7', color: '#15803d', fontWeight: 'bold' }}>
+                              Hiệu Lực
+                            </span>
+                          </td>
+                          <td>
+                            <button 
+                              className="btn btn-primary btn-sm"
+                              onClick={() => navigate(`/thanh-toan-ky-dau/${c.id}`)}
+                            >
+                              Thu tiền ➔
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           ) : !contract ? (
             <div className="card" style={{ textAlign: 'center', padding: '48px', color: 'var(--danger)' }}>

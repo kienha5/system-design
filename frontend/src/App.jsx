@@ -61,9 +61,9 @@ function AppRoutes() {
         <ProtectedRoute allowedRoles={['Sale']}><DangKyTraPhong /></ProtectedRoute>
       } />
 
-      {/* Shared routes (Sale and QuanLy) */}
+      {/* Sale-only routes */}
       <Route path="/ghi-nhan-dat-coc" element={
-        <ProtectedRoute allowedRoles={['Sale', 'QuanLy', 'quản lý', 'Quản lý']}><GhiNhanDatCoc /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={['Sale']}><GhiNhanDatCoc /></ProtectedRoute>
       } />
 
       {/* Shared routes (All roles) */}

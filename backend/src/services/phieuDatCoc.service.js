@@ -380,6 +380,7 @@ export const phieuDatCocService = {
         kh.email AS khach_hang_email,
         kh.gioi_tinh AS khach_hang_gioi_tinh,
         kh.quoc_tich AS khach_hang_quoc_tich,
+        kh.so_cmnd_cccd AS khach_hang_so_cmnd_cccd,
         p.ma_phong,
         p.loai_phong,
         p.khu_vuc,
@@ -395,82 +396,20 @@ export const phieuDatCocService = {
   },
 
   /**
-   * Submit a payment slip for a deposit sheet (Sale action).
+   * Confirm a deposit payment (Sale action).
    * 
    * @param {string} id - Deposit sheet UUID
-   * @param {Object} data - { chung_tu_url, phuong_thuc_thanh_toan }
+   * @param {Object} data - { phuong_thuc_thanh_toan, chung_tu_url }
+   * @param {string} saleId - UUID of the Sale confirming the sheet
    * @param {Object} [tx] - Optional postgres.js transaction client
    * @returns {Promise<Object>} The updated deposit sheet
    */
-  async nopChungTu(id, data, tx) {
+  async xacNhanDatCoc(id, data, saleId, tx) {
     const client = tx || sql
 
     // 1. Verify existence
     const [existing] = await client`
-      SELECT id FROM phieu_dat_coc WHERE id = ${id}
-    `
-    if (!existing) {
-      const err = new Error('Không tìm thấy phiếu đặt cọc.')
-      err.code = 'NOT_FOUND'
-      err.status = 404
-      throw err
-    }
-
-    // 2. Check and run lazy expiry
-    await this.checkAndExpireIfNeeded(id, client)
-
-    // 3. Fetch updated status
-    const [phieu] = await client`
-      SELECT id, trang_thai
-      FROM phieu_dat_coc
-      WHERE id = ${id}
-    `
-
-    if (phieu.trang_thai === 'HetHan') {
-      const err = new Error('Phiếu đặt cọc đã hết hạn thanh toán (quá 24h).')
-      err.code = 'PHIEU_COC_HET_HAN'
-      err.status = 422
-      throw err
-    }
-    if (phieu.trang_thai === 'DaThanhToan') {
-      const err = new Error('Phiếu đặt cọc đã được xác nhận thanh toán trước đó.')
-      err.code = 'PHIEU_COC_DA_XAC_NHAN'
-      err.status = 409
-      throw err
-    }
-    if (phieu.trang_thai !== 'ChoThanhToan') {
-      const err = new Error('Trạng thái phiếu đặt cọc không hợp lệ để nộp chứng từ.')
-      err.code = 'TRANG_THAI_KHONG_HOP_LE'
-      err.status = 422
-      throw err
-    }
-
-    // 4. Update slip URL and payment method
-    const [updated] = await client`
-      UPDATE phieu_dat_coc
-      SET chung_tu_url = ${data.chung_tu_url},
-          phuong_thuc_thanh_toan = ${data.phuong_thuc_thanh_toan}
-      WHERE id = ${id}
-      RETURNING id, ma_phieu_coc, chung_tu_url, phuong_thuc_thanh_toan, trang_thai
-    `
-    return updated
-  },
-
-  /**
-   * Confirm or reject a deposit payment (Manager action).
-   * 
-   * @param {string} id - Deposit sheet UUID
-   * @param {boolean} xacNhanBool - True to approve, false to reject
-   * @param {string} userXacNhanId - UUID of the Manager approving the sheet
-   * @param {Object} [tx] - Optional postgres.js transaction client
-   * @returns {Promise<Object>} The updated deposit sheet
-   */
-  async xacNhan(id, xacNhanBool, userXacNhanId, tx) {
-    const client = tx || sql
-
-    // 1. Verify existence
-    const [existing] = await client`
-      SELECT id, phong_id, giuong_id, chung_tu_url, trang_thai 
+      SELECT id, phong_id, giuong_id, trang_thai 
       FROM phieu_dat_coc 
       WHERE id = ${id}
     `
@@ -486,7 +425,7 @@ export const phieuDatCocService = {
 
     // 3. Fetch updated status
     const [phieu] = await client`
-      SELECT id, trang_thai, phong_id, giuong_id, chung_tu_url, phuong_thuc_thanh_toan
+      SELECT id, trang_thai, phong_id, giuong_id
       FROM phieu_dat_coc
       WHERE id = ${id}
     `
@@ -510,65 +449,46 @@ export const phieuDatCocService = {
       throw err
     }
 
-    // 4. Handle confirmation
-    if (xacNhanBool === true) {
-      // Must have slip uploaded
-      if (!phieu.chung_tu_url) {
-        const err = new Error('Không thể xác nhận phiếu cọc khi chưa có chứng từ thanh toán.')
-        err.code = 'CHUNG_TU_CHUA_NOI'
-        err.status = 422
-        throw err
-      }
+    // Update status to 'DaThanhToan' and save transaction receipt
+    const [updated] = await client`
+      UPDATE phieu_dat_coc
+      SET trang_thai = 'DaThanhToan',
+          phuong_thuc_thanh_toan = ${data.phuong_thuc_thanh_toan},
+          chung_tu_url = ${data.chung_tu_url},
+          nguoi_xac_nhan_id = ${saleId}
+      WHERE id = ${id}
+      RETURNING id, ma_phieu_coc, trang_thai, nguoi_xac_nhan_id
+    `
 
-      // Update status to 'DaThanhToan'
-      const [updated] = await client`
-        UPDATE phieu_dat_coc
-        SET trang_thai = 'DaThanhToan',
-            nguoi_xac_nhan_id = ${userXacNhanId}
-        WHERE id = ${id}
-        RETURNING id, ma_phieu_coc, trang_thai, nguoi_xac_nhan_id
+    // Lock bed(s) to 'DaDatCoc'
+    if (phieu.giuong_id) {
+      // Shared/single room bed
+      await phongService.updateTrangThaiGiuong(
+        phieu.giuong_id, 
+        'DaDatCoc', 
+        'Đã nhận đặt cọc giường lẻ', 
+        saleId, 
+        client
+      )
+    } else {
+      // Entire room: lock all beds
+      const beds = await client`
+        SELECT id 
+        FROM giuong 
+        WHERE phong_id = ${phieu.phong_id}
       `
-
-      // Lock bed(s) to 'DaDatCoc'
-      if (phieu.giuong_id) {
-        // Shared/single room bed
+      for (const bed of beds) {
         await phongService.updateTrangThaiGiuong(
-          phieu.giuong_id, 
+          bed.id, 
           'DaDatCoc', 
-          'Đã nhận đặt cọc giường lẻ', 
-          userXacNhanId, 
+          'Đã nhận đặt cọc nguyên phòng', 
+          saleId, 
           client
         )
-      } else {
-        // Entire room: lock all beds
-        const beds = await client`
-          SELECT id 
-          FROM giuong 
-          WHERE phong_id = ${phieu.phong_id}
-        `
-        for (const bed of beds) {
-          await phongService.updateTrangThaiGiuong(
-            bed.id, 
-            'DaDatCoc', 
-            'Đã nhận đặt cọc nguyên phòng', 
-            userXacNhanId, 
-            client
-          )
-        }
       }
-
-      return updated
-    } else {
-      // Rejection: reset slip URL and payment method to NULL
-      const [updated] = await client`
-        UPDATE phieu_dat_coc
-        SET chung_tu_url = NULL,
-            phuong_thuc_thanh_toan = NULL
-        WHERE id = ${id}
-        RETURNING id, ma_phieu_coc, trang_thai, chung_tu_url, phuong_thuc_thanh_toan
-      `
-      return updated
     }
+
+    return updated
   }
 }
 

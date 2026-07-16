@@ -124,29 +124,32 @@ export default function DashboardQuanLy() {
 
             <div 
               className="card shortcut-card" 
-              style={{ opacity: 0.6, cursor: 'not-allowed', borderLeft: '4px solid var(--gray-400)' }}
+              onClick={() => navigate('/ban-giao-phong/select')}
+              style={{ borderLeft: '4px solid var(--success)' }}
             >
               <span className="shortcut-icon">🏠</span>
               <h4 style={{ color: 'var(--gray-800)', marginBottom: '4px' }}>Giao phòng cho khách</h4>
-              <p style={{ fontSize: '13px', color: 'var(--gray-500)' }}>Thực hiện bàn giao tài sản và nhận phòng (Truy cập từ chi tiết hợp đồng)</p>
+              <p style={{ fontSize: '13px', color: 'var(--gray-500)' }}>Thực hiện bàn giao tài sản và nhận phòng khi có hợp đồng</p>
             </div>
 
-            <div 
+             <div 
               className="card shortcut-card" 
-              style={{ opacity: 0.6, cursor: 'not-allowed', borderLeft: '4px solid var(--gray-400)' }}
+              onClick={() => navigate('/tra-phong/select?tab=doisoat')}
+              style={{ borderLeft: '4px solid var(--primary)' }}
             >
               <span className="shortcut-icon">🔍</span>
               <h4 style={{ color: 'var(--gray-800)', marginBottom: '4px' }}>Kiểm tra phòng khi trả</h4>
-              <p style={{ fontSize: '13px', color: 'var(--gray-500)' }}>Đối soát bàn giao tài sản khi trả phòng (Truy cập từ thông báo trả phòng)</p>
+              <p style={{ fontSize: '13px', color: 'var(--gray-500)' }}>Đối soát bàn giao tài sản khi khách trả phòng</p>
             </div>
 
             <div 
               className="card shortcut-card" 
-              style={{ opacity: 0.6, cursor: 'not-allowed', borderLeft: '4px solid var(--gray-400)' }}
+              onClick={() => navigate('/tra-phong/select?tab=thanhly')}
+              style={{ borderLeft: '4px solid var(--danger)' }}
             >
               <span className="shortcut-icon">📄</span>
               <h4 style={{ color: 'var(--gray-800)', marginBottom: '4px' }}>Kết thúc hợp đồng</h4>
-              <p style={{ fontSize: '13px', color: 'var(--gray-500)' }}>Thanh lý hợp đồng và hoàn tất các thủ tục tài chính (Truy cập từ biên bản trả phòng)</p>
+              <p style={{ fontSize: '13px', color: 'var(--gray-500)' }}>Thanh lý hợp đồng và hoàn tất các thủ tục tài chính</p>
             </div>
 
             <div 

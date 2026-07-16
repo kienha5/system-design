@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react'
 import { searchPhong, getGiuongTrong } from '../../api/phong.api'
 import { useAuth } from '../../context/AuthContext'
 
-export default function TraCuuPhong({ 
-  mode = 'browse', 
-  onSelectPhong, 
+export default function TraCuuPhong({
+  mode = 'browse',
+  onSelectPhong,
   onSelectGiuong,
   selectedPhongId,
-  selectedGiuongId 
+  selectedGiuongId
 }) {
   const { user } = useAuth()
   // Bộ lọc tìm kiếm
@@ -143,10 +143,10 @@ export default function TraCuuPhong({
         <div className="filter-row">
           <div className="filter-group">
             <label>Khu vực</label>
-            <input 
-              type="text" 
-              className="input" 
-              placeholder="Ví dụ: Khu A" 
+            <input
+              type="text"
+              className="input"
+              placeholder="Ví dụ: Khu A"
               value={filters.khu_vuc}
               onChange={(e) => {
                 setFilters({ ...filters, khu_vuc: e.target.value })
@@ -157,7 +157,7 @@ export default function TraCuuPhong({
 
           <div className="filter-group">
             <label>Loại phòng</label>
-            <select 
+            <select
               className="select"
               value={filters.loai_phong}
               onChange={(e) => {
@@ -174,9 +174,9 @@ export default function TraCuuPhong({
 
           <div className="filter-group">
             <label>Giá tối đa</label>
-            <input 
-              type="number" 
-              className="input" 
+            <input
+              type="number"
+              className="input"
               placeholder="Nhập giá thuê tối đa"
               value={filters.gia_den}
               onChange={(e) => {
@@ -189,7 +189,7 @@ export default function TraCuuPhong({
           {mode === 'browse' && (
             <div className="filter-group">
               <label>Trạng thái</label>
-              <select 
+              <select
                 className="select"
                 value={filters.trang_thai}
                 onChange={(e) => {
@@ -212,7 +212,7 @@ export default function TraCuuPhong({
       {/* Danh sách phòng */}
       <div className="card" style={{ overflowX: 'auto', marginBottom: '24px' }}>
         {error && <div style={{ color: 'var(--danger)', marginBottom: '16px', fontWeight: 600 }}>{error}</div>}
-        
+
         {loading ? (
           <div style={{ padding: '40px', textAlign: 'center', color: 'var(--gray-500)' }}>Đang tìm kiếm phòng...</div>
         ) : rooms.length === 0 ? (
@@ -237,8 +237,8 @@ export default function TraCuuPhong({
                 {rooms.map((room) => {
                   const isSelected = selectedRoom?.id === room.id || selectedPhongId === room.id
                   return (
-                    <tr 
-                      key={room.id} 
+                    <tr
+                      key={room.id}
                       className={`${mode === 'select' ? 'selectable-row' : ''} ${isSelected ? 'selected-room-row' : ''}`}
                       onClick={() => handleSelectRoom(room)}
                     >
@@ -252,7 +252,7 @@ export default function TraCuuPhong({
                       <td>{getStatusBadge(room.trang_thai)}</td>
                       {mode === 'select' && (
                         <td>
-                          <button 
+                          <button
                             className={`btn btn-sm ${isSelected ? 'btn-success' : 'btn-primary'}`}
                             onClick={(e) => {
                               e.stopPropagation()
@@ -272,7 +272,7 @@ export default function TraCuuPhong({
             {/* Phân trang */}
             {totalPages > 1 && (
               <div className="page-actions" style={{ marginTop: '20px' }}>
-                <button 
+                <button
                   className="btn btn-sm"
                   disabled={page === 1}
                   onClick={() => setPage(page - 1)}
@@ -282,7 +282,7 @@ export default function TraCuuPhong({
                 <span style={{ alignSelf: 'center', margin: '0 16px', fontWeight: 600, color: 'var(--gray-600)' }}>
                   Trang {page} / {totalPages}
                 </span>
-                <button 
+                <button
                   className="btn btn-sm"
                   disabled={page === totalPages}
                   onClick={() => setPage(page + 1)}
@@ -301,7 +301,7 @@ export default function TraCuuPhong({
           <h4 style={{ marginBottom: '12px', color: 'var(--gray-800)' }}>
             Chọn giường trống của phòng <strong>{selectedRoom.ma_phong}</strong>:
           </h4>
-          
+
           {loadingBeds ? (
             <div style={{ padding: '20px', textAlign: 'center', color: 'var(--gray-500)' }}>Đang tải danh sách giường...</div>
           ) : beds.length === 0 ? (
@@ -311,9 +311,9 @@ export default function TraCuuPhong({
               {beds.map((bed) => {
                 const isBedSelected = activeGiuongId === bed.id || selectedGiuongId === bed.id
                 const isOccupied = bed.trang_thai !== 'Trong'
-                
+
                 return (
-                  <div 
+                  <div
                     key={bed.id}
                     className={`bed-item ${isBedSelected ? 'selected' : ''} ${isOccupied ? 'disabled' : ''}`}
                     onClick={() => !isOccupied && handleSelectBed(bed)}

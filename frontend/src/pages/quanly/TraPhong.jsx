@@ -4,14 +4,14 @@ import Sidebar from '../../components/shared/Sidebar'
 import Header from '../../components/shared/Header'
 import Toast from '../../components/shared/Toast'
 import { useAuth } from '../../context/AuthContext'
-import { 
-  getBienBanTraPhong, 
-  doSoatTaiSan, 
-  khauTruChiPhi, 
+import {
+  getBienBanTraPhong,
+  doSoatTaiSan,
+  khauTruChiPhi,
   xacNhanKhach,
   getGoiYTyLe
 } from '../../api/bienBanTraPhong.api'
-import { thanhLyHopDong } from '../../api/hopDong.api'
+import { thanhLyHopDong, searchHopDong } from '../../api/hopDong.api'
 import { FieldError } from '../../components/shared/FieldError'
 import { parseValidationErrors } from '../../utils/fieldNameMap'
 
@@ -20,14 +20,43 @@ export default function TraPhong() {
   const navigate = useNavigate()
   const { user } = useAuth()
 
+  // Temporary runtime error alert for debugging
+  useEffect(() => {
+    const handleError = (event) => {
+      alert(`[Antigravity Debug] Runtime Error: ${event.message}\nFile: ${event.filename}\nLine: ${event.lineno}`);
+    };
+    window.addEventListener('error', handleError);
+    return () => window.removeEventListener('error', handleError);
+  }, []);
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'ChoDoiSoat': return 'Chờ đối soát'
+      case 'ChoXacNhan': return 'Chờ xác nhận/Khấu trừ'
+      case 'DaThanhLy': return 'Đã thanh lý hoàn tất'
+      case 'Tot': return 'Tốt'
+      case 'DungDuoc': return 'Dùng được'
+      case 'CanChuY': return 'Cần chú ý'
+      case 'HuHong': return 'Hư hỏng'
+      case 'MatMat': return 'Mất mát'
+      default: return status || 'N/A'
+    }
+  }
+
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
   const [bienBan, setBienBan] = useState(null)
-  
+
   // Active step in the UI (1, 2, 3, or 4)
   const [activeStep, setActiveStep] = useState(1)
   const [fieldErrors, setFieldErrors] = useState({})
   const [toast, setToast] = useState(null)
+
+  // Selection view states (when bienBanId === 'select')
+  const [contracts, setContracts] = useState([])
+  const [loadingContracts, setLoadingContracts] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [activeTab, setActiveTab] = useState('doisoat')
 
   // Roles verification
   const role = user?.vai_tro?.toLowerCase()
@@ -65,11 +94,34 @@ export default function TraPhong() {
       const res = await getBienBanTraPhong(bienBanId)
       if (res.success) {
         const data = res.data
+
+        // Parse danh_sach_doi_soat safely
+        if (data.danh_sach_doi_soat && typeof data.danh_sach_doi_soat === 'string') {
+          try {
+            data.danh_sach_doi_soat = JSON.parse(data.danh_sach_doi_soat)
+          } catch (e) {
+            console.error('Failed to parse danh_sach_doi_soat JSON:', e)
+            data.danh_sach_doi_soat = []
+            setToast({ message: 'Cảnh báo: Định dạng dữ liệu đối soát tài sản bị lỗi (JSON parse error). Vui lòng liên hệ hỗ trợ!', type: 'warning' })
+          }
+        }
+
+        // Parse bien_ban_ban_giao.danh_sach_tai_san safely
+        if (data.bien_ban_ban_giao && typeof data.bien_ban_ban_giao.danh_sach_tai_san === 'string') {
+          try {
+            data.bien_ban_ban_giao.danh_sach_tai_san = JSON.parse(data.bien_ban_ban_giao.danh_sach_tai_san)
+          } catch (e) {
+            console.error('Failed to parse handover assets list JSON:', e)
+            data.bien_ban_ban_giao.danh_sach_tai_san = []
+            setToast({ message: 'Cảnh báo: Định dạng dữ liệu tài sản bàn giao bị lỗi (JSON parse error). Vui lòng liên hệ hỗ trợ!', type: 'warning' })
+          }
+        }
+
         setBienBan(data)
-        
+
         // 1. Initialize Step 1 (Audit)
         setNgayTraThucTe(data.ngay_tra_thuc_te ? new Date(data.ngay_tra_thuc_te).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16))
-        
+
         if (data.danh_sach_doi_soat && data.danh_sach_doi_soat.length > 0) {
           setAuditList(data.danh_sach_doi_soat)
         } else if (data.bien_ban_ban_giao?.danh_sach_tai_san) {
@@ -95,7 +147,7 @@ export default function TraPhong() {
         setTyLeHoanCoc(data.ty_le_hoan_coc !== null ? Number(data.ty_le_hoan_coc) : 100)
         setTienThueConNo(data.chi_phi_phat_sinh_tong ? Number(data.tien_thue_con_no || 0) : 0)
         setTienDienNuocDichVu(data.chi_phi_phat_sinh_tong ? Number(data.tien_dien_nuoc_dich_vu || 0) : 0)
-        
+
         // Calculate repair sum
         const repairSum = data.danh_sach_doi_soat
           ? data.danh_sach_doi_soat.reduce((sum, item) => sum + Number(item.chi_phi_boi_thuong || 0), 0)
@@ -135,10 +187,40 @@ export default function TraPhong() {
   }
 
   useEffect(() => {
-    if (bienBanId) {
+    if (bienBanId && bienBanId !== 'select') {
       loadCheckoutData()
     }
   }, [bienBanId])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const tabParam = params.get('tab')
+    if (tabParam && ['doisoat', 'thanhly', 'dathanhly'].includes(tabParam)) {
+      setActiveTab(tabParam)
+    }
+  }, [bienBanId])
+
+  useEffect(() => {
+    const fetchContracts = async () => {
+      setLoadingContracts(true)
+      try {
+        const res = await searchHopDong(searchQuery)
+        if (res.success) {
+          // Lọc ra các hợp đồng có yêu cầu trả phòng (bien_ban_tra_phong_id không null)
+          setContracts(res.data.filter(c => c.bien_ban_tra_phong_id !== null))
+        }
+      } catch (err) {
+        console.error(err)
+        showToast('Không thể tải danh sách yêu cầu trả phòng.', 'danger')
+      } finally {
+        setLoadingContracts(false)
+      }
+    }
+
+    if (bienBanId === 'select') {
+      fetchContracts()
+    }
+  }, [bienBanId, searchQuery])
 
   useEffect(() => {
     const fetchGoiY = async () => {
@@ -163,7 +245,7 @@ export default function TraPhong() {
   const soTienCocGoc = Number(bienBan?.so_tien_coc_goc || 0)
   const tienCocDuocHoan = soTienCocGoc * (tyLeHoanCoc / 100)
   const chiPhiPhatSinhTong = Number(tienThueConNo) + Number(tienDienNuocDichVu) + Number(chiPhiSuaChuaBoiThuong) + Number(tienPhatViPham)
-  
+
   const resultHoanKhach = tienCocDuocHoan >= chiPhiPhatSinhTong ? (tienCocDuocHoan - chiPhiPhatSinhTong) : 0
   const resultKhachTraThem = chiPhiPhatSinhTong > tienCocDuocHoan ? (chiPhiPhatSinhTong - tienCocDuocHoan) : 0
 
@@ -286,7 +368,7 @@ export default function TraPhong() {
       const res = await thanhLyHopDong(bienBan.hop_dong_id, checkedFinance)
       if (res.success) {
         showToast('Hợp đồng đã được thanh lý thành công! Phòng và giường đã được giải phóng.', 'success')
-        
+
         // Wait a brief moment to let toast show, then navigate to dashboard
         setTimeout(() => {
           navigate('/dashboard-quan-ly')
@@ -313,6 +395,148 @@ export default function TraPhong() {
     return new Date(dateStr).toLocaleString('vi-VN')
   }
 
+  if (bienBanId === 'select') {
+    return (
+      <div className="layout">
+        <Sidebar />
+
+        <div className="main">
+          <Header title="📋 Danh sách hồ sơ trả phòng" />
+
+          <div className="content">
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+            <div className="card" style={{ animation: 'fadeIn 0.3s ease' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px', color: 'var(--gray-800)' }}>
+                🚪 Xử lý hồ sơ trả phòng & thanh lý
+              </h2>
+              <p style={{ fontSize: '13px', color: 'var(--gray-500)', marginBottom: '20px' }}>
+                {isKeToan
+                  ? 'Danh sách hợp đồng đang chờ Kế toán tính toán các khoản khấu trừ phí phát sinh và tiền hoàn cọc.'
+                  : 'Tìm kiếm và chọn hồ sơ trả phòng để đối soát tài sản (Quản lý) hoặc tiến hành kết thúc thanh lý hợp đồng.'}
+              </p>
+
+              {/* Tabs for Manager */}
+              {isQuanLy && (
+                <div style={{ display: 'flex', gap: '12px', borderBottom: '1px solid var(--gray-200)', marginBottom: '20px', paddingBottom: '2px' }}>
+                  <button
+                    className={`btn ${activeTab === 'doisoat' ? 'btn-primary' : 'btn-outline'}`}
+                    style={{ borderRadius: '20px', padding: '8px 16px', fontSize: '13px' }}
+                    onClick={() => setActiveTab('doisoat')}
+                  >
+                    🔍 Chờ đối soát tài sản
+                  </button>
+                  <button
+                    className={`btn ${activeTab === 'thanhly' ? 'btn-primary' : 'btn-outline'}`}
+                    style={{ borderRadius: '20px', padding: '8px 16px', fontSize: '13px' }}
+                    onClick={() => setActiveTab('thanhly')}
+                  >
+                    📄 Chờ thanh lý hợp đồng
+                  </button>
+                  <button
+                    className={`btn ${activeTab === 'dathanhly' ? 'btn-primary' : 'btn-outline'}`}
+                    style={{ borderRadius: '20px', padding: '8px 16px', fontSize: '13px' }}
+                    onClick={() => setActiveTab('dathanhly')}
+                  >
+                    ✅ Đã thanh lý hoàn tất
+                  </button>
+                </div>
+              )}
+
+              <div style={{ marginBottom: '20px', maxWidth: '400px' }}>
+                <input
+                  type="text"
+                  className="input"
+                  placeholder="Tìm theo mã HĐ, tên khách, SĐT..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+
+              {loadingContracts ? (
+                <div style={{ textAlign: 'center', padding: '40px', color: 'var(--gray-500)' }}>
+                  Đang tải danh sách hồ sơ trả phòng...
+                </div>
+              ) : (
+                (() => {
+                  // Filter contracts based on role and tab
+                  let filtered = contracts;
+                  if (isKeToan) {
+                    filtered = contracts.filter(c => c.bien_ban_tra_phong_trang_thai === 'ChoXacNhan')
+                  } else {
+                    if (activeTab === 'doisoat') {
+                      filtered = contracts.filter(c => c.bien_ban_tra_phong_trang_thai === 'ChoDoiSoat')
+                    } else if (activeTab === 'thanhly') {
+                      filtered = contracts.filter(c => c.bien_ban_tra_phong_trang_thai === 'ChoXacNhan')
+                    } else {
+                      filtered = contracts.filter(c => c.bien_ban_tra_phong_trang_thai === 'DaThanhLy')
+                    }
+                  }
+
+                  if (filtered.length === 0) {
+                    return (
+                      <div style={{ textAlign: 'center', padding: '40px', color: 'var(--gray-400)' }}>
+                        📭 Không có hồ sơ nào cần xử lý trong mục này.
+                      </div>
+                    )
+                  }
+
+                  return (
+                    <div style={{ overflowX: 'auto' }}>
+                      <table className="room-table">
+                        <thead>
+                          <tr>
+                            <th>Mã hợp đồng</th>
+                            <th>Khách đại diện</th>
+                            <th>Số điện thoại</th>
+                            <th>Phòng</th>
+                            <th>Trạng thái hồ sơ</th>
+                            <th>Hành động</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filtered.map((c) => (
+                            <tr key={c.id}>
+                              <td><strong>{c.ma_hop_dong}</strong></td>
+                              <td>{c.ten_khach_hang}</td>
+                              <td>{c.sdt_khach_hang}</td>
+                              <td>Phòng {c.ma_phong}</td>
+                              <td>
+                                <span className={`badge ${c.bien_ban_tra_phong_trang_thai === 'ChoDoiSoat' ? 'status-pending' :
+                                  c.bien_ban_tra_phong_trang_thai === 'ChoXacNhan' ? 'status-checking' :
+                                    'status-success'
+                                  }`}>
+                                  {c.bien_ban_tra_phong_trang_thai === 'ChoDoiSoat' ? 'Chờ đối soát' :
+                                    c.bien_ban_tra_phong_trang_thai === 'ChoXacNhan' ? 'Chờ xác nhận/Khấu trừ' :
+                                      'Đã thanh lý'}
+                                </span>
+                              </td>
+                              <td>
+                                <button
+                                  className="btn btn-primary btn-sm"
+                                  onClick={() => navigate(`/tra-phong/${c.bien_ban_tra_phong_id}`)}
+                                >
+                                  {isKeToan ? 'Tính tiền khấu trừ ➔' :
+                                    c.bien_ban_tra_phong_trang_thai === 'ChoDoiSoat' ? 'Đối soát tài sản ➔' :
+                                      c.bien_ban_tra_phong_trang_thai === 'ChoXacNhan' ? 'Thanh lý HĐ ➔' :
+                                        'Xem chi tiết ➔'}
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )
+                })()
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="layout">
@@ -331,25 +555,25 @@ export default function TraPhong() {
   return (
     <div className="layout">
       <Sidebar />
-      
+
       <div className="main">
         <Header title={`Hồ sơ trả phòng: ${bienBan?.ma_bien_ban}`} />
-        
+
         <div className="content">
           {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
           {/* Stepper Wizard Header */}
           <div className="card" style={{ marginBottom: '24px', padding: '20px 32px' }}>
             <div className="stepper" style={{ display: 'flex', justifyContent: 'space-between', position: 'relative' }}>
-              
+
               {/* Step 1 */}
-              <div 
+              <div
                 className={`step-item ${activeStep >= 1 ? 'active' : ''} ${activeStep > 1 ? 'completed' : ''}`}
                 onClick={() => setActiveStep(1)}
                 style={{ cursor: 'pointer', textAlign: 'center', flex: 1, zIndex: 1 }}
               >
                 <div className="step-number" style={{
-                  width: '36px', height: '36px', borderRadius: '50%', 
+                  width: '36px', height: '36px', borderRadius: '50%',
                   background: activeStep === 1 ? 'var(--primary)' : activeStep > 1 ? 'var(--success)' : 'var(--gray-300)',
                   color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   margin: '0 auto 8px auto', fontWeight: 'bold'
@@ -361,13 +585,13 @@ export default function TraPhong() {
               </div>
 
               {/* Step 2 */}
-              <div 
+              <div
                 className={`step-item ${activeStep >= 2 ? 'active' : ''} ${activeStep > 2 ? 'completed' : ''}`}
                 onClick={() => { if (bienBan.trang_thai !== 'ChoDoiSoat') setActiveStep(2) }}
                 style={{ cursor: bienBan.trang_thai !== 'ChoDoiSoat' ? 'pointer' : 'not-allowed', textAlign: 'center', flex: 1, zIndex: 1 }}
               >
                 <div className="step-number" style={{
-                  width: '36px', height: '36px', borderRadius: '50%', 
+                  width: '36px', height: '36px', borderRadius: '50%',
                   background: activeStep === 2 ? 'var(--primary)' : activeStep > 2 ? 'var(--success)' : 'var(--gray-300)',
                   color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   margin: '0 auto 8px auto', fontWeight: 'bold'
@@ -379,13 +603,13 @@ export default function TraPhong() {
               </div>
 
               {/* Step 3 */}
-              <div 
+              <div
                 className={`step-item ${activeStep >= 3 ? 'active' : ''} ${activeStep > 3 ? 'completed' : ''}`}
                 onClick={() => { if (bienBan.ke_toan_xac_nhan_id) setActiveStep(3) }}
                 style={{ cursor: bienBan.ke_toan_xac_nhan_id ? 'pointer' : 'not-allowed', textAlign: 'center', flex: 1, zIndex: 1 }}
               >
                 <div className="step-number" style={{
-                  width: '36px', height: '36px', borderRadius: '50%', 
+                  width: '36px', height: '36px', borderRadius: '50%',
                   background: activeStep === 3 ? 'var(--primary)' : activeStep > 3 ? 'var(--success)' : 'var(--gray-300)',
                   color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   margin: '0 auto 8px auto', fontWeight: 'bold'
@@ -397,13 +621,13 @@ export default function TraPhong() {
               </div>
 
               {/* Step 4 */}
-              <div 
+              <div
                 className={`step-item ${activeStep >= 4 ? 'active' : ''} ${bienBan.trang_thai === 'DaThanhLy' ? 'completed' : ''}`}
                 onClick={() => { if (bienBan.khach_xac_nhan_doi_soat) setActiveStep(4) }}
                 style={{ cursor: bienBan.khach_xac_nhan_doi_soat ? 'pointer' : 'not-allowed', textAlign: 'center', flex: 1, zIndex: 1 }}
               >
                 <div className="step-number" style={{
-                  width: '36px', height: '36px', borderRadius: '50%', 
+                  width: '36px', height: '36px', borderRadius: '50%',
                   background: bienBan.trang_thai === 'DaThanhLy' ? 'var(--success)' : activeStep === 4 ? 'var(--primary)' : 'var(--gray-300)',
                   color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
                   margin: '0 auto 8px auto', fontWeight: 'bold'
@@ -416,7 +640,7 @@ export default function TraPhong() {
 
               {/* Connector line */}
               <div style={{
-                position: 'absolute', top: '18px', left: '10%', right: '10%', 
+                position: 'absolute', top: '18px', left: '10%', right: '10%',
                 height: '2px', background: 'var(--gray-200)', zIndex: 0
               }}></div>
             </div>
@@ -477,9 +701,9 @@ export default function TraPhong() {
                 <tbody>
                   {auditList.map((item, index) => {
                     const originalItem = bienBan.bien_ban_ban_giao?.danh_sach_tai_san?.find(
-                      b => b.ten.toLowerCase() === item.ten.toLowerCase()
+                      b => b && b.ten && item && item.ten && b.ten.toLowerCase() === item.ten.toLowerCase()
                     )
-                    
+
                     return (
                       <tr key={index}>
                         <td style={{ fontWeight: 600 }}>{item.ten}</td>
@@ -559,8 +783,8 @@ export default function TraPhong() {
                 </button>
               ) : (
                 <div className="alert alert-warning" style={{ margin: 0, background: '#fffbeb', border: '1px solid #fef3c7', color: '#b45309' }}>
-                  {!isQuanLy 
-                    ? 'Chỉ tài khoản Quản lý mới được chỉnh sửa và nộp đối soát tài sản.' 
+                  {!isQuanLy
+                    ? 'Chỉ tài khoản Quản lý mới được chỉnh sửa và nộp đối soát tài sản.'
                     : 'Biên bản này đã qua bước đối soát tài sản (đã khóa).'
                   }
                 </div>
@@ -581,18 +805,18 @@ export default function TraPhong() {
                 {/* Left panel: Form */}
                 <div>
                   <h4 style={{ color: 'var(--gray-800)', marginBottom: '16px' }}>📝 Nhập thông số tài chính</h4>
-                  
+
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <div className="form-group">
                       <label className="form-label" style={{ fontWeight: 600 }}>Tỷ lệ hoàn cọc (%):</label>
-                      
+
                       {goiYTyLe && (
-                        <div style={{ 
-                          background: '#eff6ff', 
-                          border: '1px solid #bfdbfe', 
-                          padding: '10px 14px', 
-                          borderRadius: '6px', 
-                          color: '#1e40af', 
+                        <div style={{
+                          background: '#eff6ff',
+                          border: '1px solid #bfdbfe',
+                          padding: '10px 14px',
+                          borderRadius: '6px',
+                          color: '#1e40af',
                           marginBottom: '12px',
                           fontSize: '13px'
                         }}>
@@ -721,7 +945,7 @@ export default function TraPhong() {
                   <h4 style={{ color: 'var(--gray-800)', marginBottom: '16px', borderBottom: '1px solid var(--gray-200)', paddingBottom: '8px' }}>
                     📊 Bảng tính toán khấu trừ cọc
                   </h4>
-                  
+
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '14px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span style={{ color: 'var(--gray-500)' }}>Tiền cọc gốc:</span>
@@ -783,8 +1007,8 @@ export default function TraPhong() {
                   </button>
                 ) : (
                   <div className="alert alert-warning" style={{ margin: 0, background: '#fffbeb', border: '1px solid #fef3c7', color: '#b45309' }}>
-                    {!isKeToan 
-                      ? 'Chỉ tài khoản Kế toán mới có quyền lập và chỉnh sửa khấu trừ chi phí.' 
+                    {!isKeToan
+                      ? 'Chỉ tài khoản Kế toán mới có quyền lập và chỉnh sửa khấu trừ chi phí.'
                       : 'Không ở trạng thái Chờ Xác Nhận hoặc đã qua bước lập khấu trừ.'
                     }
                   </div>
@@ -877,8 +1101,8 @@ export default function TraPhong() {
                       </button>
                     ) : (
                       <div className="alert alert-warning" style={{ margin: 0, background: '#fffbeb', border: '1px solid #fef3c7', color: '#b45309' }}>
-                        {!isQuanLy 
-                          ? 'Chỉ tài khoản Quản lý mới được thực hiện xác nhận khách đồng ý.' 
+                        {!isQuanLy
+                          ? 'Chỉ tài khoản Quản lý mới được thực hiện xác nhận khách đồng ý.'
                           : 'Khách hàng đã đồng ý đối soát này (quy trình đã khóa).'
                         }
                       </div>
@@ -911,7 +1135,7 @@ export default function TraPhong() {
 
                     <h4 style={{ color: 'var(--gray-800)', marginBottom: '16px' }}>📋 Checklist công tác thanh lý thực tế</h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', border: '1px solid var(--gray-200)', padding: '20px', borderRadius: '8px', marginBottom: '24px' }}>
-                      
+
                       {/* Check 1 */}
                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
                         <input
@@ -953,10 +1177,10 @@ export default function TraPhong() {
                           style={{ marginTop: '4px' }}
                         />
                         <label htmlFor="checkFinance" style={{ fontSize: '14px', color: 'var(--gray-700)', cursor: 'pointer' }}>
-                          <strong>Xác nhận nghĩa vụ tài chính:</strong> Đã thu đủ tiền mặt/chuyển khoản từ khách hàng (hoặc đã hoàn trả tiền mặt/chuyển khoản cọc cho khách hàng) số tiền: 
+                          <strong>Xác nhận nghĩa vụ tài chính:</strong> Đã thu đủ tiền mặt/chuyển khoản từ khách hàng (hoặc đã hoàn trả tiền mặt/chuyển khoản cọc cho khách hàng) số tiền:
                           <strong style={{ color: Number(bienBan.so_tien_hoan_khach) > 0 ? 'var(--success)' : 'var(--danger)', marginLeft: '6px' }}>
-                            {Number(bienBan.so_tien_hoan_khach) > 0 
-                              ? `Hoàn khách ${formatMoney(bienBan.so_tien_hoan_khach)}` 
+                            {Number(bienBan.so_tien_hoan_khach) > 0
+                              ? `Hoàn khách ${formatMoney(bienBan.so_tien_hoan_khach)}`
                               : `Khách trả thêm ${formatMoney(bienBan.so_tien_khach_can_tra_them)}`
                             }
                           </strong>.

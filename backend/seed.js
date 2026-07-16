@@ -12,11 +12,15 @@ dotenv.config()
  */
 
 
-const supabaseUrl = process.env.SUPABASE_URL || 'https://lycvxtqtjdqrpihwzyfp.supabase.co'
+let supabaseUrl = process.env.SUPABASE_URL
+if (supabaseUrl && supabaseUrl.endsWith('/rest/v1')) {
+  supabaseUrl = supabaseUrl.replace('/rest/v1', '')
+}
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 if (!supabaseUrl || !supabaseServiceRoleKey) {
   console.error('Lỗi: SUPABASE_URL hoặc SUPABASE_SERVICE_ROLE_KEY chưa được định nghĩa trong file .env')
+  console.error('Hãy tạo file backend/.env từ backend/.env.example và điền thông tin dự án Supabase của bạn.')
   process.exit(1)
 }
 
