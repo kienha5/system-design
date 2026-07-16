@@ -117,71 +117,68 @@ async function main() {
       console.log(`Đã thêm vào DB nguoi_dung_he_thong: ${dbUser.ho_ten} (${dbUser.vai_tro})`)
     }
 
-    // 5. Seed các phòng (phong)
-    console.log('5. Đang tạo danh sách phòng mẫu (P101, P201, P301)...')
-    // P101 — Phòng Đơn — Nam — 1 giường — 2,500,000đ/giường/tháng — Khu A
-    const [p101] = await sql`
-      INSERT INTO phong (id, chi_nhanh_id, ma_phong, loai_phong, suc_chua_toi_da, gia_thue_mot_giuong, gioi_tinh_quy_dinh, khu_vuc, trang_thai)
-      VALUES (gen_random_uuid(), ${branch.id}, 'P101', 'Don', 1, 2500000.00, 'Nam', 'Khu A', 'Trong')
-      RETURNING id, ma_phong
-    `
-    // P201 — Phòng Ghép — Nữ — 4 giường — 1,500,000đ/giường/tháng — Khu B
-    const [p201] = await sql`
-      INSERT INTO phong (id, chi_nhanh_id, ma_phong, loai_phong, suc_chua_toi_da, gia_thue_mot_giuong, gioi_tinh_quy_dinh, khu_vuc, trang_thai)
-      VALUES (gen_random_uuid(), ${branch.id}, 'P201', 'Ghep', 4, 1500000.00, 'Nu', 'Khu B', 'Trong')
-      RETURNING id, ma_phong
-    `
-    // P301 — Phòng Ghép — NULL (Không giới hạn) — 2 giường — 2,000,000đ/giường/tháng — Khu C
-    const [p301] = await sql`
-      INSERT INTO phong (id, chi_nhanh_id, ma_phong, loai_phong, suc_chua_toi_da, gia_thue_mot_giuong, gioi_tinh_quy_dinh, khu_vuc, trang_thai)
-      VALUES (gen_random_uuid(), ${branch.id}, 'P301', 'Ghep', 2, 2000000.00, NULL, 'Khu C', 'Trong')
-      RETURNING id, ma_phong
-    `
-    console.log('Đã tạo 3 phòng thành công.')
+    // 5, 6, 7. Seed các phòng, giường và tài sản
+    console.log('5, 6, 7. Đang tạo danh sách phòng, giường và tài sản mẫu (30 phòng, mở rộng gấp 10 lần)...')
+    for (let i = 1; i <= 10; i++) {
+      // Nhóm phòng Đơn (Nam) - P101 -> P110
+      const maPhongDon = `P1${String(i).padStart(2, '0')}`
+      const [phongDon] = await sql`
+        INSERT INTO phong (id, chi_nhanh_id, ma_phong, loai_phong, suc_chua_toi_da, gia_thue_mot_giuong, gioi_tinh_quy_dinh, khu_vuc, trang_thai)
+        VALUES (gen_random_uuid(), ${branch.id}, ${maPhongDon}, 'Don', 1, 2500000.00, 'Nam', 'Khu A', 'Trong')
+        RETURNING id, ma_phong
+      `
+      // Giường phòng đơn
+      await sql`INSERT INTO giuong (id, phong_id, ma_giuong, trang_thai) VALUES (gen_random_uuid(), ${phongDon.id}, ${`G1${String(i).padStart(2, '0')}-A`}, 'Trong')`
+      // Tài sản phòng đơn
+      await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${phongDon.id}, 'Giường đơn', 1)`
+      await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${phongDon.id}, 'Nệm', 1)`
+      await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${phongDon.id}, 'Tủ quần áo', 1)`
+      await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${phongDon.id}, 'Bàn học', 1)`
+      await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${phongDon.id}, 'Ghế', 1)`
+      await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${phongDon.id}, 'Thẻ từ', 1)`
 
-    // 6. Seed các giường (giuong)
-    console.log('6. Đang tạo danh sách giường...')
-    // P101: G101-A (1 giường)
-    await sql`INSERT INTO giuong (id, phong_id, ma_giuong, trang_thai) VALUES (gen_random_uuid(), ${p101.id}, 'G101-A', 'Trong')`
-    
-    // P201: G201-A, G201-B, G201-C, G201-D (4 giường)
-    await sql`INSERT INTO giuong (id, phong_id, ma_giuong, trang_thai) VALUES (gen_random_uuid(), ${p201.id}, 'G201-A', 'Trong')`
-    await sql`INSERT INTO giuong (id, phong_id, ma_giuong, trang_thai) VALUES (gen_random_uuid(), ${p201.id}, 'G201-B', 'Trong')`
-    await sql`INSERT INTO giuong (id, phong_id, ma_giuong, trang_thai) VALUES (gen_random_uuid(), ${p201.id}, 'G201-C', 'Trong')`
-    await sql`INSERT INTO giuong (id, phong_id, ma_giuong, trang_thai) VALUES (gen_random_uuid(), ${p201.id}, 'G201-D', 'Trong')`
+      // Nhóm phòng Ghép (Nữ) - P201 -> P210
+      const maPhongGhepNu = `P2${String(i).padStart(2, '0')}`
+      const [phongGhepNu] = await sql`
+        INSERT INTO phong (id, chi_nhanh_id, ma_phong, loai_phong, suc_chua_toi_da, gia_thue_mot_giuong, gioi_tinh_quy_dinh, khu_vuc, trang_thai)
+        VALUES (gen_random_uuid(), ${branch.id}, ${maPhongGhepNu}, 'Ghep', 4, 1500000.00, 'Nu', 'Khu B', 'Trong')
+        RETURNING id, ma_phong
+      `
+      // Giường phòng ghép nữ (4 giường)
+      const giuongNuLetter = ['A', 'B', 'C', 'D']
+      for (const char of giuongNuLetter) {
+        await sql`INSERT INTO giuong (id, phong_id, ma_giuong, trang_thai) VALUES (gen_random_uuid(), ${phongGhepNu.id}, ${`G2${String(i).padStart(2, '0')}-${char}`}, 'Trong')`
+      }
+      // Tài sản phòng ghép nữ
+      await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${phongGhepNu.id}, 'Giường tầng', 2)`
+      await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${phongGhepNu.id}, 'Nệm', 4)`
+      await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${phongGhepNu.id}, 'Tủ quần áo', 2)`
+      await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${phongGhepNu.id}, 'Bàn học', 4)`
+      await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${phongGhepNu.id}, 'Ghế', 4)`
+      await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${phongGhepNu.id}, 'Thẻ từ', 1)`
 
-    // P301: G301-A, G301-B (2 giường)
-    await sql`INSERT INTO giuong (id, phong_id, ma_giuong, trang_thai) VALUES (gen_random_uuid(), ${p301.id}, 'G301-A', 'Trong')`
-    await sql`INSERT INTO giuong (id, phong_id, ma_giuong, trang_thai) VALUES (gen_random_uuid(), ${p301.id}, 'G301-B', 'Trong')`
-    console.log('Đã tạo giường cho các phòng thành công.')
+      // Nhóm phòng Ghép (Không giới hạn) - P301 -> P310
+      const maPhongGhepAny = `P3${String(i).padStart(2, '0')}`
+      const [phongGhepAny] = await sql`
+        INSERT INTO phong (id, chi_nhanh_id, ma_phong, loai_phong, suc_chua_toi_da, gia_thue_mot_giuong, gioi_tinh_quy_dinh, khu_vuc, trang_thai)
+        VALUES (gen_random_uuid(), ${branch.id}, ${maPhongGhepAny}, 'Ghep', 2, 2000000.00, NULL, 'Khu C', 'Trong')
+        RETURNING id, ma_phong
+      `
+      // Giường phòng ghép any (2 giường)
+      const giuongAnyLetter = ['A', 'B']
+      for (const char of giuongAnyLetter) {
+        await sql`INSERT INTO giuong (id, phong_id, ma_giuong, trang_thai) VALUES (gen_random_uuid(), ${phongGhepAny.id}, ${`G3${String(i).padStart(2, '0')}-${char}`}, 'Trong')`
+      }
+      // Tài sản phòng ghép any
+      await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${phongGhepAny.id}, 'Giường đơn', 2)`
+      await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${phongGhepAny.id}, 'Nệm', 2)`
+      await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${phongGhepAny.id}, 'Tủ quần áo', 2)`
+      await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${phongGhepAny.id}, 'Bàn học', 2)`
+      await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${phongGhepAny.id}, 'Ghế', 2)`
+      await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${phongGhepAny.id}, 'Thẻ từ', 1)`
+    }
+    console.log('Đã tạo 30 phòng và đầy đủ giường/tài sản tương ứng thành công.')
 
-    // 7. Seed tài sản phòng (tai_san_phong) mặc định cho mỗi phòng
-    console.log('7. Đang tạo danh sách tài sản phòng mẫu...')
-    
-    // P101: Giường đơn x1, Nệm x1, Tủ quần áo x1, Bàn học x1, Ghế x1, Thẻ từ x1
-    await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${p101.id}, 'Giường đơn', 1)`
-    await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${p101.id}, 'Nệm', 1)`
-    await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${p101.id}, 'Tủ quần áo', 1)`
-    await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${p101.id}, 'Bàn học', 1)`
-    await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${p101.id}, 'Ghế', 1)`
-    await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${p101.id}, 'Thẻ từ', 1)`
-
-    // P201: Giường tầng x2, Nệm x4, Tủ quần áo x2, Bàn học x4, Ghế x4, Thẻ từ x1
-    await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${p201.id}, 'Giường tầng', 2)`
-    await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${p201.id}, 'Nệm', 4)`
-    await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${p201.id}, 'Tủ quần áo', 2)`
-    await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${p201.id}, 'Bàn học', 4)`
-    await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${p201.id}, 'Ghế', 4)`
-    await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${p201.id}, 'Thẻ từ', 1)`
-
-    // P301: Giường đơn x2, Nệm x2, Tủ quần áo x2, Bàn học x2, Ghế x2, Thẻ từ x1
-    await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${p301.id}, 'Giường đơn', 2)`
-    await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${p301.id}, 'Nệm', 2)`
-    await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${p301.id}, 'Tủ quần áo', 2)`
-    await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${p301.id}, 'Bàn học', 2)`
-    await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${p301.id}, 'Ghế', 2)`
-    await sql`INSERT INTO tai_san_phong (id, phong_id, ten_tai_san, so_luong) VALUES (gen_random_uuid(), ${p301.id}, 'Thẻ từ', 1)`
-    console.log('Đã tạo tài sản mặc định cho 3 phòng thành công.')
 
     // 8. Seed khách hàng mẫu (khach_hang)
     console.log('8. Đang tạo khách hàng mẫu...')
@@ -203,12 +200,13 @@ async function main() {
     }
     console.log('\n✅ Chi nhánh: KTX Quận 1')
     console.log('\n✅ Phòng & Giường:')
-    console.log('   P101 (Đơn/Nam):  1 giường — 2,500,000đ')
-    console.log('   P201 (Ghép/Nữ):  4 giường — 1,500,000đ')
-    console.log('   P301 (Ghép/Any): 2 giường — 2,000,000đ')
-    console.log('\n✅ Tài sản phòng: đã tạo cho 3 phòng')
+    console.log('   P101 -> P110 (Đơn/Nam):  1 giường/phòng — 2,500,000đ')
+    console.log('   P201 -> P210 (Ghép/Nữ):  4 giường/phòng — 1,500,000đ')
+    console.log('   P301 -> P310 (Ghép/Any): 2 giường/phòng — 2,000,000đ')
+    console.log('\n✅ Tài sản phòng: đã tạo đầy đủ cho tất cả 30 phòng')
     console.log('\n✅ Khách hàng mẫu: 4 khách')
-    console.log('\n🎉 Seed hoàn tất! Hệ thống sẵn sàng để test.')
+    console.log('\n🎉 Seed hoàn tất! Hệ thống sẵn sàng để test với 30 phòng mẫu.')
+
     console.log('========================================================================')
 
   } catch (err) {
