@@ -3,6 +3,20 @@
 ========================================================================
 
 ------------------------------------------------------------------------
+Version: v0.9.0
+Date: 2026-07-16
+Description: Standalone Room Search View and Navigation Integration
+------------------------------------------------------------------------
+* Standalone Room & Bed Search Page (UC02)
+  - Created a new TraCuuPhongPage.jsx view incorporating the TraCuuPhong search component in 'browse' mode.
+  - Allows all roles (Sale, Manager, Accountant) to search for rooms, filters, and inspect bed occupancy levels.
+* App Routing & Guards
+  - Registered and protected the `/tra-cuu-phong` route in App.jsx.
+* Sidebar Navigation Integration
+  - Added "Tra cứu phòng/giường" menu item for the Sale and Accountant sidebars.
+  - Corrected the "Quản lý trạng thái phòng" menu link in the Manager sidebar to correctly navigate to `/tra-cuu-phong` instead of the incorrect `/ghi-nhan-dat-coc` route.
+
+------------------------------------------------------------------------
 Version: v0.8.2
 Date: 2026-07-15
 Description: Fix Date/Decimal Serialization and Add Tracing Sequence IDs
