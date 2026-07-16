@@ -13,6 +13,8 @@ import ThanhToanKyDau from './pages/ketoan/ThanhToanKyDau'
 import BanGiaoPhong from './pages/quanly/BanGiaoPhong'
 import DangKyTraPhong from './pages/sale/DangKyTraPhong'
 import TraPhong from './pages/quanly/TraPhong'
+import TraCuuPhongPage from './pages/shared/TraCuuPhongPage'
+
 
 function ProtectedRoute({ children, allowedRoles }) {
   const { user, loading } = useAuth()
@@ -63,6 +65,12 @@ function AppRoutes() {
       <Route path="/ghi-nhan-dat-coc" element={
         <ProtectedRoute allowedRoles={['Sale', 'QuanLy', 'quản lý', 'Quản lý']}><GhiNhanDatCoc /></ProtectedRoute>
       } />
+
+      {/* Shared routes (All roles) */}
+      <Route path="/tra-cuu-phong" element={
+        <ProtectedRoute allowedRoles={['Sale', 'QuanLy', 'quản lý', 'Quản lý', 'KeToan', 'kế toán', 'Kế toán']}><TraCuuPhongPage /></ProtectedRoute>
+      } />
+
 
       {/* Manager (QuanLy) routes */}
       <Route path="/dashboard-quan-ly" element={

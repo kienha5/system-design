@@ -72,7 +72,7 @@ export default function DatLichXemPhong() {
     try {
       const res = await datLichXem(nhuCauThueId, {
         lich_hen_xem: targetDate.toISOString(),
-        phuong_thuc_thong_bao
+        phuong_thuc_thong_bao: phuongThucThongBao
       })
 
       if (res.success) {

@@ -132,3 +132,9 @@ export async function thongKeKeToan() {
     bien_ban_cho_khau_tru: parseInt(bienBanChoKhauTru[0].count)
   }
 }
+
+export const thongKeService = {
+  thongKeSale,
+  thongKeQuanLy,
+  thongKeKeToan
+}

@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken'
 import sql from '../db.js'
 import 'dotenv/config'
 import crypto from 'crypto'
+import { logDebug } from '../utils/logger.js'
 
 let jwksCache = null
 let jwksFetchTime = 0
@@ -123,6 +124,16 @@ export async function authenticate(req, res, next) {
       chi_nhanh_id: nguoiDung.chi_nhanh_id,
       email: nguoiDung.email
     }
+
+    logDebug('[AUTH] User authenticated successfully', {
+      user: {
+        id: req.user.id,
+        ho_ten: req.user.ho_ten,
+        vai_tro: req.user.vai_tro,
+        chi_nhanh_id: req.user.chi_nhanh_id,
+        email: req.user.email
+      }
+    })
 
     next()
   } catch (err) {

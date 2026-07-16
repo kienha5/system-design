@@ -3,6 +3,72 @@
 ========================================================================
 
 ------------------------------------------------------------------------
+Version: v0.9.0
+Date: 2026-07-16
+Description: Standalone Room Search View and Navigation Integration
+------------------------------------------------------------------------
+* Standalone Room & Bed Search Page (UC02)
+  - Created a new TraCuuPhongPage.jsx view incorporating the TraCuuPhong search component in 'browse' mode.
+  - Allows all roles (Sale, Manager, Accountant) to search for rooms, filters, and inspect bed occupancy levels.
+* App Routing & Guards
+  - Registered and protected the `/tra-cuu-phong` route in App.jsx.
+* Sidebar Navigation Integration
+  - Added "Tra cứu phòng/giường" menu item for the Sale and Accountant sidebars.
+  - Corrected the "Quản lý trạng thái phòng" menu link in the Manager sidebar to correctly navigate to `/tra-cuu-phong` instead of the incorrect `/ghi-nhan-dat-coc` route.
+
+------------------------------------------------------------------------
+Version: v0.8.2
+Date: 2026-07-15
+Description: Fix Date/Decimal Serialization and Add Tracing Sequence IDs
+------------------------------------------------------------------------
+* Date/Custom Objects Serialization
+  - Fixed Date and Decimal object serialization inside the recursive `sanitizeData` filter by checking and calling `.toJSON()` before traversing child keys. Dates and decimal values are now correctly serialized rather than returning empty `{}`.
+* Tracing Sequence IDs
+  - Added an atomic auto-incrementing `sequence` counter to both frontend and backend JSON log payloads. This resolves race condition logging ordering issues where logs are written out-of-order within the same millisecond timestamp.
+
+------------------------------------------------------------------------
+Version: v0.8.1
+Date: 2026-07-15
+Description: Structured Log Syncing, File Logging, and Service Wrapper Improvements
+------------------------------------------------------------------------
+* Request ID Synchronization
+  - Frontend generates request UUID (`X-Request-ID`) on every API request and logs it.
+  - Backend reuses the frontend request ID if present, establishing 1-to-1 correlation across client/server log pipelines.
+* Centralized Service Wrapper
+  - Replaced manual file-based service tracing with a global startup routine (`wrapServiceInPlace`) in index.js, automatically tracing all 10 service layers in-place.
+* File Logging & Ignored logs/ folder
+  - Appends JSON structured logs to `backend/logs/debug-trace.log` when `DEBUG_TRACE=true` is enabled.
+  - Added `logs/` to `.gitignore` to prevent tracking debug logs.
+  - Created `backend/.env.example` documenting environment variables and warning against enabling `DEBUG_TRACE` in production.
+
+------------------------------------------------------------------------
+Version: v0.8.0
+Date: 2026-07-15
+Description: Structured E2E Debug Tracing Log System
+------------------------------------------------------------------------
+* Structured E2E Request Tracing
+  - Backend requestTraceMiddleware assigns a UUID `request_id` context to each HTTP lifecycle.
+  - Integrates Node.js AsyncLocalStorage to share `request_id` context across middlewares, validators, and services.
+  - Automatically traces service calls (entry, exit, errors) using a proxy wrapper helper (`traceService`), summarizing output arrays to prevent log bloat.
+  - Outputs detailed Zod error objects (failing fields, raw inputs) in structured JSON format.
+  - Frontend axiosClient intercepts request/response latency and dynamically extracts calling source code components/functions using Call Stack tracing.
+  - Sanitizes sensitive keys (password, access_token, so_cmnd_cccd) across both frontend and backend logs.
+  - Controlled by environment variables `DEBUG_TRACE=true` (backend) and `VITE_DEBUG_TRACE=true` (frontend).
+* Database & Edge Case fixes
+  - Seed script updated to backfill `email` in the `nguoi_dung_he_thong` table.
+  - Verified edge case for multi-branch Managers (where `chi_nhanh_id = null` allows searching all branches).
+
+------------------------------------------------------------------------
+Version: v0.7.1
+Date: 2026-07-14
+Description: Bug Fixes in E2E Happy Path Flow (UC04 - UC05 - UC06)
+------------------------------------------------------------------------
+* Bug Fixes & UX Enhancements
+  - Lỗi 1 (chi_nhanh_id): Updated database seed to use a valid RFC 4122 v4-compliant branch UUID, resolving strict Zod validation schema failures on search/deposit. Prioritized user.chi_nhanh_id in the deposit payload.
+  - Lỗi 2 (lich_hen_xem): Verified datetime-local picker layout alignment on frontend and ensured datetime submission is correctly formatted to ISO 8601 UTC string.
+  - Lỗi 3 (phuong_thuc_thong_bao): Resolved JavaScript ReferenceError crash in DatLichXemPhong.jsx by mapping the camelCase state phuongThucThongBao to snake_case payload key phuong_thuc_thong_bao.
+
+------------------------------------------------------------------------
 Version: v0.7.0
 Date: 2026-07-14
 Description: Form Validation UX Enhancements, Database Accounts Link & GET /me Extension

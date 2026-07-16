@@ -12,8 +12,36 @@ import bienBanBanGiaoRouter from './src/routes/bienBanBanGiao.routes.js'
 import bienBanTraPhongRouter from './src/routes/bienBanTraPhong.routes.js'
 import thongKeRouter from './src/routes/thongKe.routes.js'
 
+import { requestTraceMiddleware } from './src/middleware/requestTrace.middleware.js'
+import { logDebug, wrapServiceInPlace } from './src/utils/logger.js'
+
+import { authService } from './src/services/auth.service.js'
+import { bienBanBanGiaoService } from './src/services/bienBanBanGiao.service.js'
+import { bienBanTraPhongService } from './src/services/bienBanTraPhong.service.js'
+import { dieuKienCuTruService } from './src/services/dieuKienCuTru.service.js'
+import { hoaDonService } from './src/services/hoaDon.service.js'
+import { hopDongService } from './src/services/hopDong.service.js'
+import { nhuCauThueService } from './src/services/nhuCauThue.service.js'
+import { phieuDatCocService } from './src/services/phieuDatCoc.service.js'
+import { phongService } from './src/services/phong.service.js'
+import { thongKeService } from './src/services/thongKe.service.js'
+
+// Wrap services for tracing at startup
+wrapServiceInPlace('authService', authService)
+wrapServiceInPlace('bienBanBanGiaoService', bienBanBanGiaoService)
+wrapServiceInPlace('bienBanTraPhongService', bienBanTraPhongService)
+wrapServiceInPlace('dieuKienCuTruService', dieuKienCuTruService)
+wrapServiceInPlace('hoaDonService', hoaDonService)
+wrapServiceInPlace('hopDongService', hopDongService)
+wrapServiceInPlace('nhuCauThueService', nhuCauThueService)
+wrapServiceInPlace('phieuDatCocService', phieuDatCocService)
+wrapServiceInPlace('phongService', phongService)
+wrapServiceInPlace('thongKeService', thongKeService)
+
 const app = express()
 const PORT = process.env.PORT || 3000
+
+app.use(requestTraceMiddleware)
 
 app.use(cors({
   origin: '*', // Hỗ trợ mọi nguồn gốc trong môi trường phát triển
@@ -34,11 +62,28 @@ app.use('/api/v1', thongKeRouter)
 
 // Middleware xử lý lỗi tập trung
 app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err)
-  res.status(err.status || 500).json({
+  const status = err.status || err.statusCode || 500
+  const errorCode = err.code || 'SYSTEM_ERROR'
+  
+  logDebug(`[HTTP_RESPONSE_ERROR] ${req.method} ${req.originalUrl} - Status: ${status} - Error: ${errorCode}`, {
+    method: req.method,
+    url: req.originalUrl,
+    statusCode: status,
+    error: {
+      code: errorCode,
+      message: err.message
+    }
+  })
+
+  // Only log full system stack errors to console error when they are internal server errors
+  if (status === 500) {
+    console.error('Unhandled error:', err)
+  }
+
+  res.status(status).json({
     success: false,
     error: {
-      code: err.code || 'SYSTEM_ERROR',
+      code: errorCode,
       message: err.message || 'Lỗi hệ thống không xác định.'
     }
   })
