@@ -62,6 +62,15 @@ export default function Sidebar() {
             </li>
             <li>
               <Link 
+                to="/tra-cuu-phong" 
+                className={isActive('/tra-cuu-phong') ? 'active' : ''}
+              >
+                🔍 Tra cứu phòng/giường
+              </Link>
+            </li>
+
+            <li>
+              <Link 
                 to="/ghi-nhan-dat-coc" 
                 className={isActive('/ghi-nhan-dat-coc') ? 'active' : ''}
               >
@@ -131,12 +140,13 @@ export default function Sidebar() {
             </li>
             <li>
               <Link 
-                to="/ghi-nhan-dat-coc" 
-                className={isActive('/ghi-nhan-dat-coc') ? 'active' : ''}
+                to="/tra-cuu-phong" 
+                className={isActive('/tra-cuu-phong') ? 'active' : ''}
               >
                 🏢 Quản lý trạng thái phòng
               </Link>
             </li>
+
           </ul>
         </>
       )}
@@ -155,6 +165,15 @@ export default function Sidebar() {
                 🏠 Tổng quan
               </Link>
             </li>
+            <li>
+              <Link 
+                to="/tra-cuu-phong" 
+                className={isActive('/tra-cuu-phong') ? 'active' : ''}
+              >
+                🔍 Tra cứu phòng/giường
+              </Link>
+            </li>
+
             <li>
               <Link 
                 to="#" 
