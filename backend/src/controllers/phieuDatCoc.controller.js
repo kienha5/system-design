@@ -85,37 +85,13 @@ export const phieuDatCocController = {
           }
         })
       }
-      res.json({
-        success: true,
-        data: result
-      })
-    } catch (err) {
-      const status = err.status || 500
-      const code = err.code || 'SYSTEM_ERROR'
 
-      res.status(status).json({
-        success: false,
-        error: {
-          code,
-          message: err.message
-        }
-      })
-    }
-  },
-
-  /**
-   * Submit payment slip for a deposit sheet (Sale action).
-   * 
-   * @param {Object} req - Express request object
-   * @param {Object} res - Express response object
-   */
-  async nopChungTu(req, res) {
-    const { id } = req.params
-
-    try {
-      const result = await sql.begin(async (tx) => {
-        return await phieuDatCocService.nopChungTu(id, req.body, tx)
-      })
+      // Security check: only QuanLy is allowed to see the CCCD number
+      const userRole = req.user?.vai_tro?.toLowerCase()
+      const isQuanLy = userRole === 'quanly' || userRole === 'quản lý'
+      if (!isQuanLy && result) {
+        delete result.khach_hang_so_cmnd_cccd
+      }
 
       res.json({
         success: true,
@@ -136,19 +112,19 @@ export const phieuDatCocController = {
   },
 
   /**
-   * Confirm or reject a deposit payment (Manager action).
+   * Confirm a deposit payment (Sale action).
    * 
    * @param {Object} req - Express request object
    * @param {Object} res - Express response object
    */
   async xacNhan(req, res) {
     const { id } = req.params
-    const { xac_nhan } = req.body
-    const userXacNhanId = req.user.id
+    const { phuong_thuc_thanh_toan, chung_tu_url } = req.body
+    const saleId = req.user.id
 
     try {
       const result = await sql.begin(async (tx) => {
-        return await phieuDatCocService.xacNhan(id, xac_nhan, userXacNhanId, tx)
+        return await phieuDatCocService.xacNhanDatCoc(id, { phuong_thuc_thanh_toan, chung_tu_url }, saleId, tx)
       })
 
       res.json({

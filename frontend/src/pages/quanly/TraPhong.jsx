@@ -102,6 +102,7 @@ export default function TraPhong() {
           } catch (e) {
             console.error('Failed to parse danh_sach_doi_soat JSON:', e)
             data.danh_sach_doi_soat = []
+            setToast({ message: 'Cảnh báo: Định dạng dữ liệu đối soát tài sản bị lỗi (JSON parse error). Vui lòng liên hệ hỗ trợ!', type: 'warning' })
           }
         }
 
@@ -112,6 +113,7 @@ export default function TraPhong() {
           } catch (e) {
             console.error('Failed to parse handover assets list JSON:', e)
             data.bien_ban_ban_giao.danh_sach_tai_san = []
+            setToast({ message: 'Cảnh báo: Định dạng dữ liệu tài sản bàn giao bị lỗi (JSON parse error). Vui lòng liên hệ hỗ trợ!', type: 'warning' })
           }
         }
 

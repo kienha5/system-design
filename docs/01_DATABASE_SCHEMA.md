@@ -165,7 +165,7 @@ CREATE TYPE tinh_trang_tai_san AS ENUM ('Tot', 'DungDuoc', 'CanChuY', 'HuHong', 
 | chung_tu_url | varchar(500) | NULL — ảnh chứng từ, lưu Supabase Storage |
 | chi_nhanh_id | uuid | FK → chi_nhanh.id, NOT NULL |
 | sale_id | uuid | FK → nguoi_dung_he_thong.id, NOT NULL — Sale lập phiếu (UC06) |
-| nguoi_xac_nhan_id | uuid | FK → nguoi_dung_he_thong.id, NULL — Quản lý đối chiếu chứng từ (UC07) |
+| nguoi_xac_nhan_id | uuid | FK → nguoi_dung_he_thong.id, NULL — Sale xác nhận đã nhận cọc (UC07) |
 | trang_thai | trang_thai_phieu_coc | NOT NULL, default 'ChoThanhToan' |
 
 > **Business rule — lazy expiry 24h (UC06 dòng thay thế A4):** Không dùng scheduled job. Mỗi khi có request liên quan đến phiếu cọc (xem, xác nhận, lập HĐ), Service kiểm tra `han_thanh_toan < now()` và `trang_thai = 'ChoThanhToan'`. Nếu quá hạn → set `trang_thai = 'HetHan'`, cập nhật `giuong.trang_thai = 'Trong'` (và `phong.trang_thai` tương ứng) trong cùng 1 transaction.

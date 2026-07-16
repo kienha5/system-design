@@ -91,6 +91,7 @@ export default function BanGiaoPhong() {
             } catch (e) {
               console.error('Failed to parse assets list JSON:', e)
               parsedAssets = []
+              showToast('Cảnh báo: Định dạng dữ liệu tài sản bàn giao bị lỗi (JSON parse error). Vui lòng liên hệ hỗ trợ!', 'warning')
             }
           }
           setAssetsList(parsedAssets || [])
@@ -112,6 +113,7 @@ export default function BanGiaoPhong() {
                 defaultAssets = JSON.parse(defaultAssets)
               } catch (e) {
                 defaultAssets = []
+                showToast('Cảnh báo: Định dạng danh mục tài sản gốc bị lỗi (JSON parse error). Vui lòng liên hệ hỗ trợ!', 'warning')
               }
             }
             setAssetsList(defaultAssets || [])

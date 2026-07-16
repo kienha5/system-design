@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import Sidebar from '../../components/shared/Sidebar'
 import Header from '../../components/shared/Header'
 import { useAuth } from '../../context/AuthContext'
-import { getPhieuChoXuLy, nopChungTu, xacNhanPhieu, getPhieuDatCocById } from '../../api/phieuDatCoc.api'
+import { getPhieuChoXuLy, xacNhanPhieu, getPhieuDatCocById } from '../../api/phieuDatCoc.api'
 import { supabase } from '../../lib/supabaseClient'
 import Toast from '../../components/shared/Toast'
 
@@ -154,57 +154,22 @@ export default function GhiNhanDatCoc() {
         .from('chung-tu')
         .getPublicUrl(filePath)
 
-      // 3. Save to backend database
-      const res = await nopChungTu(selectedSlip.id, {
+      // 3. Save to backend database and confirm deposit
+      const res = await xacNhanPhieu(selectedSlip.id, {
         chung_tu_url: publicUrl,
         phuong_thuc_thanh_toan: paymentMethod
       })
 
       if (res.success) {
-        showToast('Nộp chứng từ đặt cọc thành công! Đang chờ Quản lý duyệt.')
+        showToast('Xác nhận đặt cọc thành công! Trạng thái phòng/giường đã chuyển sang Đã đặt cọc.')
         setSelectedFile(null)
         setPreviewUrl(null)
-        await fetchSlips()
-      }
-    } catch (err) {
-      console.error(err)
-      showToast(err.message || 'Lỗi trong quá trình nộp chứng từ.', 'danger')
-    } finally {
-      setActionLoading(false)
-    }
-  }
-
-  const handleApprove = async () => {
-    setActionLoading(true)
-    try {
-      const res = await xacNhanPhieu(selectedSlip.id, true)
-      if (res.success) {
-        showToast('Phê duyệt thành công! Trạng thái phòng/giường đã được cập nhật thành Đã Đặt Cọc.')
         setSelectedSlip(null)
         await fetchSlips()
       }
     } catch (err) {
       console.error(err)
-      showToast(err.response?.data?.error?.message || 'Phê duyệt thất bại.', 'danger')
-    } finally {
-      setActionLoading(false)
-    }
-  }
-
-  const handleReject = async () => {
-    if (!window.confirm('Bạn có chắc chắn muốn từ chối chứng từ này không?')) return
-    
-    setActionLoading(true)
-    try {
-      const res = await xacNhanPhieu(selectedSlip.id, false)
-      if (res.success) {
-        showToast('Đã từ chối chứng từ thành công. Yêu cầu đã được hoàn trả lại cho Sale.', 'warning')
-        setSelectedSlip(null)
-        await fetchSlips()
-      }
-    } catch (err) {
-      console.error(err)
-      showToast(err.response?.data?.error?.message || 'Thao tác thất bại.', 'danger')
+      showToast(err.message || 'Lỗi trong quá trình xác nhận đặt cọc.', 'danger')
     } finally {
       setActionLoading(false)
     }
@@ -404,125 +369,52 @@ export default function GhiNhanDatCoc() {
                   </div>
 
                   {/* ACTION SECTION FOR SALE */}
-                  {isSale && (
-                    <div style={{ borderTop: '1px solid var(--gray-200)', paddingTop: '16px' }}>
-                      <h4 style={{ color: 'var(--gray-800)', marginBottom: '12px' }}>💰 Quy trình cập nhật thanh toán cọc</h4>
-                      
-                      {!selectedSlip.chung_tu_url ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                          <div>
-                            <label className="form-label">Phương thức thanh toán:</label>
-                            <select 
-                              className="select" 
-                              value={paymentMethod} 
-                              onChange={(e) => setPaymentMethod(e.target.value)}
-                            >
-                              <option value="ChuyenKhoan">Chuyển khoản ngân hàng (Khuyên dùng)</option>
-                              <option value="TienMat">Thanh toán tiền mặt trực tiếp</option>
-                            </select>
-                          </div>
+                  <div style={{ borderTop: '1px solid var(--gray-200)', paddingTop: '16px' }}>
+                    <h4 style={{ color: 'var(--gray-800)', marginBottom: '12px' }}>💰 Xác nhận đã nhận đặt cọc</h4>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div>
+                        <label className="form-label">Phương thức thanh toán:</label>
+                        <select 
+                          className="select" 
+                          value={paymentMethod} 
+                          onChange={(e) => setPaymentMethod(e.target.value)}
+                        >
+                          <option value="ChuyenKhoan">Chuyển khoản ngân hàng (Khuyên dùng)</option>
+                          <option value="TienMat">Thanh toán tiền mặt trực tiếp</option>
+                        </select>
+                      </div>
 
-                          <div>
-                            <label className="form-label">Minh chứng chuyển khoản (Ảnh biên lai/bill):</label>
-                            <input 
-                              type="file" 
-                              accept="image/*" 
-                              onChange={handleFileChange}
-                              style={{ display: 'block', marginTop: '4px', fontSize: '13px' }}
-                            />
-                          </div>
+                      <div>
+                        <label className="form-label">Minh chứng chuyển khoản (Ảnh biên lai/bill):</label>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={handleFileChange}
+                          style={{ display: 'block', marginTop: '4px', fontSize: '13px' }}
+                        />
+                      </div>
 
-                          {previewUrl && (
-                            <div style={{ marginTop: '8px', border: '1px solid var(--gray-200)', borderRadius: '8px', overflow: 'hidden', maxHeight: '250px' }}>
-                              <img 
-                                src={previewUrl} 
-                                alt="Xem trước biên lai" 
-                                style={{ width: '100%', height: 'auto', maxHeight: '240px', objectFit: 'contain', background: '#f8fafc' }} 
-                              />
-                            </div>
-                          )}
-
-                          <button 
-                            className="btn btn-primary" 
-                            onClick={handleUploadAndSubmit}
-                            disabled={actionLoading || !selectedFile}
-                            style={{ marginTop: '8px', width: '100%' }}
-                          >
-                            {actionLoading ? 'Đang tải lên & nộp chứng từ...' : '📤 Tải lên & Gửi xác nhận'}
-                          </button>
-                        </div>
-                      ) : (
-                        <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid var(--gray-200)' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--warning-dark, #b45309)', fontWeight: 600, fontSize: '13px', marginBottom: '12px' }}>
-                            <span>⏳</span> Đã nộp chứng từ thanh toán ({selectedSlip.phuong_thuc_thanh_toan === 'ChuyenKhoan' ? 'Chuyển khoản' : 'Tiền mặt'}). Đang chờ Quản lý duyệt.
-                          </div>
-                          
-                          <div style={{ border: '1px solid var(--gray-200)', borderRadius: '8px', overflow: 'hidden', cursor: 'zoom-in' }} onClick={() => window.open(selectedSlip.chung_tu_url, '_blank')}>
-                            <img 
-                              src={selectedSlip.chung_tu_url} 
-                              alt="Biên lai thanh toán" 
-                              style={{ width: '100%', height: 'auto', maxHeight: '200px', objectFit: 'contain', background: '#ffffff' }}
-                            />
-                            <div style={{ fontSize: '11px', color: 'var(--gray-400)', textAlign: 'center', padding: '4px 0', background: '#f1f5f9' }}>
-                              Nhấp chuột để phóng to ảnh chứng từ ↗
-                            </div>
-                          </div>
+                      {previewUrl && (
+                        <div style={{ marginTop: '8px', border: '1px solid var(--gray-200)', borderRadius: '8px', overflow: 'hidden', maxHeight: '250px' }}>
+                          <img 
+                            src={previewUrl} 
+                            alt="Xem trước biên lai" 
+                            style={{ width: '100%', height: 'auto', maxHeight: '240px', objectFit: 'contain', background: '#f8fafc' }} 
+                          />
                         </div>
                       )}
-                    </div>
-                  )}
 
-                  {/* ACTION SECTION FOR MANAGER */}
-                  {isQuanLy && (
-                    <div style={{ borderTop: '1px solid var(--gray-200)', paddingTop: '16px' }}>
-                      <h4 style={{ color: 'var(--gray-800)', marginBottom: '12px' }}>⚖️ Nghiệp vụ Phê duyệt chứng từ đặt cọc</h4>
-                      
-                      {!selectedSlip.chung_tu_url ? (
-                        <div style={{ padding: '16px', background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '8px', color: '#b45309', fontSize: '13px', textAlign: 'center', fontWeight: 600 }}>
-                          ⚠️ Nhân viên Sale chưa tải lên minh chứng chuyển khoản của khách hàng này. Đang chờ cập nhật.
-                        </div>
-                      ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                          <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid var(--gray-200)' }}>
-                            <div style={{ fontSize: '13px', color: 'var(--gray-600)', marginBottom: '8px' }}>
-                              <strong>Phương thức giao dịch:</strong> {selectedSlip.phuong_thuc_thanh_toan === 'ChuyenKhoan' ? 'Chuyển khoản ngân hàng' : 'Tiền mặt trực tiếp'}
-                            </div>
-                            <div style={{ border: '1px solid var(--gray-200)', borderRadius: '8px', overflow: 'hidden' }}>
-                              <a href={selectedSlip.chung_tu_url} target="_blank" rel="noreferrer">
-                                <img 
-                                  src={selectedSlip.chung_tu_url} 
-                                  alt="Minh chứng giao dịch" 
-                                  style={{ width: '100%', height: 'auto', maxHeight: '260px', objectFit: 'contain', background: '#ffffff' }} 
-                                />
-                              </a>
-                              <div style={{ fontSize: '11px', color: 'var(--gray-400)', textAlign: 'center', padding: '6px 0', background: '#f1f5f9' }}>
-                                Xem ảnh gốc: <a href={selectedSlip.chung_tu_url} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', fontWeight: 600 }}>Nhấp vào đây để xem ảnh kích thước lớn ↗</a>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                            <button 
-                              className="btn btn-outline" 
-                              onClick={handleReject}
-                              disabled={actionLoading}
-                              style={{ color: 'var(--danger)', borderColor: 'var(--danger)', background: 'transparent' }}
-                            >
-                              ❌ Từ chối chứng từ
-                            </button>
-                            <button 
-                              className="btn btn-primary" 
-                              onClick={handleApprove}
-                              disabled={actionLoading}
-                              style={{ background: 'var(--success)', borderColor: 'var(--success)' }}
-                            >
-                              {actionLoading ? 'Đang phê duyệt...' : '✅ Phê duyệt & Khóa chỗ'}
-                            </button>
-                          </div>
-                        </div>
-                      )}
+                      <button 
+                        className="btn btn-primary" 
+                        onClick={handleUploadAndSubmit}
+                        disabled={actionLoading || !selectedFile}
+                        style={{ marginTop: '8px', width: '100%' }}
+                      >
+                        {actionLoading ? 'Đang tải lên & xác nhận...' : '✅ Xác nhận đã nhận đặt cọc'}
+                      </button>
                     </div>
-                  )}
+                  </div>
                 </div>
               )}
             </div>

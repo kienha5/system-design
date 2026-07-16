@@ -3,6 +3,30 @@
 ========================================================================
 
 ------------------------------------------------------------------------
+Version: v0.9.2
+Date: 2026-07-16
+Description: Align UC07 with Single-Actor Sale Flow & Security Fixes
+------------------------------------------------------------------------
+* UC07 Alignment (Single-Actor Sale Deposit Confirmation)
+  - Simplified GhiNhanDatCoc.jsx to let Sale upload receipt and confirm payment in a single action.
+  - Removed online Quản lý approval/rejection steps (validation is performed offline).
+  - Merged nopChungTu and xacNhan into a unified backend transaction endpoint xacNhanDatCoc.
+  - Restricted route /ghi-nhan-dat-coc to 'Sale' role only in App.jsx.
+* Security & Privacy Masking
+  - Hidden/deleted khach_hang_so_cmnd_cccd from GET /api/v1/phieu-dat-coc/:id for non-QuanLy roles.
+* Robustness & Fault Alerts
+  - Added Toast warning notifications in TraPhong.jsx and BanGiaoPhong.jsx on JSON parse failures.
+
+------------------------------------------------------------------------
+Version: v0.9.1
+Date: 2026-07-16
+Description: Expand Seed Data to 30 Rooms (10x scale)
+------------------------------------------------------------------------
+* Database Seeding Expansion
+  - Updated seed.js to dynamically generate 30 rooms (P101-P110, P201-P210, P301-P310) using loops.
+  - Automatically inserts matching beds and default room assets for all 30 rooms.
+
+------------------------------------------------------------------------
 Version: v0.9.0
 Date: 2026-07-16
 Description: Standalone Room Search View and Navigation Integration
