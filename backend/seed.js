@@ -12,7 +12,10 @@ dotenv.config()
  */
 
 
-const supabaseUrl = process.env.SUPABASE_URL || 'https://lycvxtqtjdqrpihwzyfp.supabase.co'
+let supabaseUrl = process.env.SUPABASE_URL || 'https://lycvxtqtjdqrpihwzyfp.supabase.co'
+if (supabaseUrl.endsWith('/rest/v1')) {
+  supabaseUrl = supabaseUrl.replace('/rest/v1', '')
+}
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 if (!supabaseUrl || !supabaseServiceRoleKey) {
