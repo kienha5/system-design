@@ -2,22 +2,24 @@
 
 Dự án phát triển phần mềm quản lý ký túc xá Homestay Dorm phục vụ môn học **CSC12004 - Thiết kế Hệ thống Thông tin**. Hệ thống hỗ trợ toàn bộ 15 trường hợp sử dụng (UC01 - UC15) từ khâu tiếp nhận yêu cầu, đặt lịch xem phòng, đặt cọc giữ phòng, lập hợp đồng, bàn giao phòng đến đối soát trả phòng và thanh lý hợp đồng.
 
+**Repo GitHub:** [https://github.com/kienha5/system-design](https://github.com/kienha5/system-design)
+
 ---
 
 ## 1. Yêu Cầu Hệ Thống
 *   **Node.js**: Phiên bản 18 trở lên (khuyên dùng LTS).
-*   **Cơ sở dữ liệu**: PostgreSQL (đã lưu trữ trên dịch vụ Supabase).
+*   **Cơ sở dữ liệu**: PostgreSQL (lưu trữ trên dịch vụ [Supabase](https://supabase.com) — cần tạo project riêng).
 *   **Git**: Dùng để quản lý mã nguồn.
 
 ---
 
-## 2. Quy Trình Clone Dự Án
+## 2. Quy Trình Clone & Cài Đặt Dự Án
 Thực hiện chạy các lệnh sau trong terminal:
 
 ```bash
 # 1. Clone project về máy cá nhân
-git clone <url_repo_phong_ktx>
-cd phong-ktx
+git clone https://github.com/kienha5/system-design.git
+cd system-design/phong-ktx
 
 # 2. Cài đặt các package phụ thuộc cho Backend
 cd backend
@@ -32,26 +34,55 @@ npm install
 
 ## 3. Cấu Hình Môi Trường (.env)
 
-Hệ thống yêu cầu cấu hình các file môi trường ở cả thư mục `backend` và `frontend`.
+Hệ thống yêu cầu cấu hình các file môi trường ở cả thư mục `backend` và `frontend`. Mỗi thư mục đã có file `.env.example` làm mẫu.
 
 ### 3.1. Cấu hình Backend (`backend/.env`)
-Tạo file `.env` nằm trong thư mục `backend/` và cấu hình các biến sau:
+
+```bash
+# Từ thư mục backend/, sao chép file mẫu
+cp .env.example .env
+```
+
+Mở file `backend/.env` và điền các giá trị từ Supabase Dashboard của bạn (**Settings → API**):
 
 ```env
+# Lấy từ: Project URL
+SUPABASE_URL=https://<your-project-ref>.supabase.co
+
+# Lấy từ: Project Settings → Database → Connection string → Transaction Pooler (Port 6543)
+DATABASE_URL=postgresql://postgres.<your-project-ref>:<your-db-password>@aws-0-<region>.pooler.supabase.com:6543/postgres
+
+# Lấy từ: Project Settings → API → JWT Secret
+SUPABASE_JWT_SECRET=<your-jwt-secret>
+
+# Lấy từ: Project Settings → API → service_role key
+SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
+
+# Lấy từ: Project Settings → API → anon key
+SUPABASE_ANON_KEY=<your-anon-key>
+
+NODE_ENV=development
 PORT=3000
-DATABASE_URL=postgresql://postgres.lycvxtqtjdqrpihwzyfp:<password>@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?sslmode=require
-SUPABASE_URL=https://lycvxtqtjdqrpihwzyfp.supabase.co
-SUPABASE_ANON_KEY=<your_supabase_anon_key>
-SUPABASE_SERVICE_ROLE_KEY=<your_supabase_service_role_key>
-SUPABASE_JWT_SECRET=<your_supabase_jwt_secret>
+DEBUG_TRACE=false
 ```
 
 ### 3.2. Cấu hình Frontend (`frontend/.env`)
-Tạo file `.env` nằm trong thư mục `frontend/` và cấu hình các biến sau:
+
+```bash
+# Từ thư mục frontend/, sao chép file mẫu
+cp .env.example .env
+```
+
+Mở file `frontend/.env` và điền:
 
 ```env
-VITE_SUPABASE_URL=https://lycvxtqtjdqrpihwzyfp.supabase.co
-VITE_SUPABASE_ANON_KEY=<your_supabase_anon_key>
+# Lấy từ: Project URL (giống SUPABASE_URL ở backend)
+VITE_SUPABASE_URL=https://<your-project-ref>.supabase.co
+
+# Lấy từ: anon key (giống SUPABASE_ANON_KEY ở backend)
+VITE_SUPABASE_ANON_KEY=<your-anon-key>
+
+# Địa chỉ API backend (mặc định local dev)
 VITE_API_BASE_URL=http://localhost:3000/api/v1
 ```
 
@@ -60,66 +91,108 @@ VITE_API_BASE_URL=http://localhost:3000/api/v1
 ## 4. Khởi Tạo Cơ Sở Dữ Liệu & Dữ Liệu Mẫu
 
 ### 4.1. Tạo cấu trúc bảng (Schema SQL)
-Nếu cần khởi tạo cơ sở dữ liệu từ đầu, copy nội dung của file [docs/create_database.sql](file:///c:/Users/LOQ/Documents/system_design/phong-ktx/docs/create_database.sql) và chạy trực tiếp trong giao diện **SQL Editor** trên Supabase Dashboard.
+Đây là bước **bắt buộc** khi kết nối với project Supabase mới.
+
+1. Mở **Supabase Dashboard** → chọn project của bạn → vào mục **SQL Editor**.
+2. Copy toàn bộ nội dung file [`docs/create_database.sql`](./docs/create_database.sql) và paste vào SQL Editor.
+3. Nhấn **Run** để tạo toàn bộ cấu trúc bảng.
 
 ### 4.2. Cấu hình Supabase Storage
-Cơ chế đính kèm chứng từ chuyển khoản (UC07) và biên bản bàn giao có chữ ký (UC11) yêu cầu cấu hình Storage bucket:
-1.  Truy cập Supabase Dashboard -> **Storage**.
-2.  Tạo bucket tên là `chung-tu` (chế độ **Public**).
-3.  Tạo bucket tên là `bien-ban` (chế độ **Public**).
+Cơ chế đính kèm chứng từ chuyển khoản (UC07) và biên bản bàn giao (UC11) yêu cầu tạo 2 Storage bucket:
 
-### 4.3. Chạy Seed dữ liệu mẫu (Seeding)
-Chạy script seed dữ liệu nền và tài khoản demo:
+1. Truy cập **Supabase Dashboard → Storage → New Bucket**.
+2. Tạo bucket tên `chung-tu` — **bật Public**.
+3. Tạo bucket tên `bien-ban` — **bật Public**.
+
+### 4.3. Chạy Seed dữ liệu mẫu
+Sau khi đã cấu hình `.env` và tạo schema SQL, chạy script seed để khởi tạo tài khoản demo, chi nhánh, phòng/giường và tài sản mặc định:
+
 ```bash
 cd backend
 node seed.js
 ```
-*Script sẽ xóa các dữ liệu cũ, đồng bộ tài khoản auth và chèn các thông tin mặc định (chi nhánh, danh sách phòng P101, P201, P301, giường ở, danh mục tài sản cố định).*
+
+Script sẽ tự động:
+- Xóa sạch dữ liệu cũ (nếu có)
+- Tạo tài khoản Supabase Auth và liên kết DB
+- Tạo chi nhánh, phòng (P101, P201, P301), giường và tài sản phòng mặc định
+- Tạo 4 khách hàng mẫu
 
 **Danh sách tài khoản kiểm thử mặc định (Mật khẩu: `Demo@1234`):**
-*   **Bộ phận Sale:** `sale@dorm.com`
-*   **Bộ phận Quản lý:** `quanly@dorm.com`
-*   **Bộ phận Kế toán:** `ketoan@dorm.com`
+
+| Vai trò | Email |
+|---|---|
+| Nhân viên Sale | `sale@dorm.com` |
+| Quản lý | `quanly@dorm.com` |
+| Kế toán | `ketoan@dorm.com` |
 
 ---
 
 ## 5. Khởi Chạy Ứng Dụng
 
-Mở hai terminal song song để chạy Backend và Frontend:
+Mở **hai terminal riêng biệt** để chạy Backend và Frontend song song:
 
 ### 5.1. Chạy Backend Server
 ```bash
 cd backend
-npm run dev
+node index.js
 ```
-*Backend sẽ lắng nghe tại địa chỉ: `http://localhost:3000`*
+> Backend lắng nghe tại: `http://localhost:3000`  
+> *(Dùng `npm run dev` nếu muốn auto-restart khi thay đổi code — yêu cầu cài `nodemon`)*
 
 ### 5.2. Chạy Frontend (React/Vite)
 ```bash
 cd frontend
 npm run dev
 ```
-*Frontend sẽ chạy tại địa chỉ: `http://localhost:5173` (hoặc `http://localhost:5174` nếu cổng 5173 đã bị chiếm dụng)*
+> Frontend chạy tại: `http://localhost:5173`  
+> *(hoặc port 5174 nếu 5173 đã bị chiếm)*
+
+Sau khi cả hai server đã chạy, mở trình duyệt và truy cập `http://localhost:5173`.
 
 ---
 
-## 6. Hướng Dẫn Kiểm Thử (Testing)
+## 6. Hướng Dẫn Kiểm Thử
 
-### 6.1. Script Reset Dữ Liệu Nghiệp Vụ
-Để chạy lại demo/test từ đầu mà không làm mất tài khoản nhân sự và phòng ở gốc:
+### 6.1. Reset Dữ Liệu Nghiệp Vụ (trước mỗi lần demo)
+Để dọn sạch dữ liệu giao dịch phát sinh (hợp đồng, hóa đơn, phiếu cọc...) mà không xóa tài khoản và phòng:
 ```bash
 cd backend
 node reset-demo.js
 ```
-*Lệnh này sẽ dọn sạch các dữ liệu giao dịch phát sinh như hợp đồng, hóa đơn, phiếu cọc, biên bản trả phòng.*
 
-### 6.2. Kiểm thử API Liên thông
-Chạy test tự động kiểm tra xác thực quyền hạn và lấy dữ liệu thống kê từ Supabase:
-```bash
-cd backend
-node scratch/test_integration.js
+### 6.2. Kịch bản Test End-to-End
+Toàn bộ kịch bản test chi tiết từ UC01 đến UC15 được trình bày tại:
+👉 **[docs/TEST_SCENARIOS.md](./docs/TEST_SCENARIOS.md)**
+
+Đăng nhập bằng tài khoản Sale, Quản lý, Kế toán trên trình duyệt để thực hiện từng bước.
+
+---
+
+## 7. Cấu Trúc Thư Mục
+
 ```
-
-### 6.3. Kịch bản Test End-to-End bằng tay
-Kịch bản chi tiết thực hiện toàn bộ luồng nghiệp vụ liên thông từ UC01 đến UC15 được trình bày tại [docs/TEST_SCENARIOS.md](file:///c:/Users/LOQ/Documents/system_design/phong-ktx/docs/TEST_SCENARIOS.md).
-Bạn có thể đăng nhập bằng tài khoản Sale, Quản lý, Kế toán trên trình duyệt để kiểm tra từng bước tương ứng.
+phong-ktx/
+├── backend/              # Express.js API server
+│   ├── src/
+│   │   ├── routes/       # Định tuyến API
+│   │   ├── controllers/  # Xử lý request/response
+│   │   ├── services/     # Logic nghiệp vụ
+│   │   └── middlewares/  # Auth, validation
+│   ├── seed.js           # Khởi tạo dữ liệu mẫu
+│   ├── reset-demo.js     # Reset dữ liệu giao dịch
+│   └── .env.example      # Mẫu biến môi trường
+├── frontend/             # React + Vite SPA
+│   ├── src/
+│   │   ├── pages/        # Màn hình theo vai trò
+│   │   ├── components/   # Shared components
+│   │   ├── api/          # API client functions
+│   │   └── context/      # Auth context
+│   └── .env.example      # Mẫu biến môi trường
+└── docs/
+    ├── create_database.sql   # Schema SQL đầy đủ
+    ├── TEST_SCENARIOS.md     # Kịch bản kiểm thử E2E
+    ├── 01_DATABASE_SCHEMA.md # Mô tả thiết kế DB
+    ├── 02_API_SPEC.md        # Đặc tả API
+    └── specs/                # UC specs chi tiết
+```
