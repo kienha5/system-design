@@ -380,6 +380,7 @@ export const phieuDatCocService = {
         kh.email AS khach_hang_email,
         kh.gioi_tinh AS khach_hang_gioi_tinh,
         kh.quoc_tich AS khach_hang_quoc_tich,
+        kh.so_cmnd_cccd AS khach_hang_so_cmnd_cccd,
         p.ma_phong,
         p.loai_phong,
         p.khu_vuc,

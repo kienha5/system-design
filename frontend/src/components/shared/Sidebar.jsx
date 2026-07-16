@@ -113,27 +113,24 @@ export default function Sidebar() {
             </li>
             <li>
               <Link 
-                to="#" 
-                className={location.pathname.startsWith('/ban-giao-phong') ? 'active' : 'disabled'}
-                onClick={(e) => { if (!location.pathname.startsWith('/ban-giao-phong')) e.preventDefault() }}
+                to="/ban-giao-phong/select" 
+                className={location.pathname.startsWith('/ban-giao-phong') ? 'active' : ''}
               >
                 🏠 Giao phòng cho khách
               </Link>
             </li>
             <li>
               <Link 
-                to="#" 
-                className={location.pathname.startsWith('/tra-phong') ? 'active' : 'disabled'}
-                onClick={(e) => { if (!location.pathname.startsWith('/tra-phong')) e.preventDefault() }}
+                to="/tra-phong/select?tab=doisoat" 
+                className={location.pathname === '/tra-phong/select' && location.search.includes('tab=doisoat') ? 'active' : ''}
               >
                 🔍 Kiểm tra phòng khi trả
               </Link>
             </li>
             <li>
               <Link 
-                to="#" 
-                className={location.pathname.startsWith('/tra-phong') ? 'active' : 'disabled'}
-                onClick={(e) => { if (!location.pathname.startsWith('/tra-phong')) e.preventDefault() }}
+                to="/tra-phong/select?tab=thanhly" 
+                className={location.pathname === '/tra-phong/select' && location.search.includes('tab=thanhly') ? 'active' : ''}
               >
                 📄 Kết thúc hợp đồng
               </Link>
@@ -176,18 +173,16 @@ export default function Sidebar() {
 
             <li>
               <Link 
-                to="#" 
-                className={location.pathname.startsWith('/thanh-toan-ky-dau') ? 'active' : 'disabled'}
-                onClick={(e) => { if (!location.pathname.startsWith('/thanh-toan-ky-dau')) e.preventDefault() }}
+                to="/thanh-toan-ky-dau/select" 
+                className={location.pathname.startsWith('/thanh-toan-ky-dau') ? 'active' : ''}
               >
                 💰 Thu tiền tháng đầu
               </Link>
             </li>
             <li>
               <Link 
-                to="#" 
-                className={location.pathname.startsWith('/tra-phong') ? 'active' : 'disabled'}
-                onClick={(e) => { if (!location.pathname.startsWith('/tra-phong')) e.preventDefault() }}
+                to="/tra-phong/select" 
+                className={location.pathname === '/tra-phong/select' ? 'active' : ''}
               >
                 🧾 Tính tiền hoàn cọc
               </Link>

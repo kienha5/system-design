@@ -168,12 +168,18 @@ export const bienBanTraPhongService = {
       SELECT id, danh_sach_tai_san
       FROM bien_ban_ban_giao
       WHERE hop_dong_id = ${bbt.hop_dong_id}
-    />`
-    
+    `
+
     let warning = null
     if (!bbg) {
       warning = 'KHONG_CO_BIEN_BAN_BAN_GIAO'
     }
+
+    // Calculate total compensation from audit list
+    const chi_phi_sua_chua_boi_thuong = (danh_sach_doi_soat || []).reduce(
+      (sum, item) => sum + Number(item.chi_phi_boi_thuong || 0),
+      0
+    )
 
     // 4. Update the checkout record
     const [updated] = await client`
@@ -181,10 +187,11 @@ export const bienBanTraPhongService = {
       SET 
         danh_sach_doi_soat = ${JSON.stringify(danh_sach_doi_soat)},
         ngay_tra_thuc_te = ${new Date(ngay_tra_thuc_te)},
+        chi_phi_sua_chua_boi_thuong = ${chi_phi_sua_chua_boi_thuong},
         trang_thai = 'ChoXacNhan',
         quan_ly_xac_nhan_id = ${quanLyId}
       WHERE id = ${id}
-      RETURNING id, ma_bien_ban, trang_thai, ngay_tra_thuc_te, danh_sach_doi_soat
+      RETURNING id, ma_bien_ban, trang_thai, ngay_tra_thuc_te, danh_sach_doi_soat, chi_phi_sua_chua_boi_thuong
     `
 
     return {
@@ -204,7 +211,7 @@ export const bienBanTraPhongService = {
    */
   async khauTru(id, input, keToanId, tx) {
     const client = tx || sql
-    
+
     const ty_le_hoan_coc = Number(input.ty_le_hoan_coc)
     const tien_thue_con_no = Number(input.tien_thue_con_no || 0)
     const tien_dien_nuoc_dich_vu = Number(input.tien_dien_nuoc_dich_vu || 0)
@@ -261,10 +268,10 @@ export const bienBanTraPhongService = {
     }
 
     // 3. Compute costs & balances
-    const chi_phi_phat_sinh_tong = tien_thue_con_no 
-                                  + tien_dien_nuoc_dich_vu 
-                                  + chi_phi_sua_chua_boi_thuong 
-                                  + tien_phat_vi_pham
+    const chi_phi_phat_sinh_tong = tien_thue_con_no
+      + tien_dien_nuoc_dich_vu
+      + chi_phi_sua_chua_boi_thuong
+      + tien_phat_vi_pham
 
     const tien_coc_duoc_hoan = so_tien_coc * (ty_le_hoan_coc / 100)
 

@@ -45,7 +45,7 @@ router.get(
 router.get(
   '/hop-dong/:id',
   authenticate,
-  requireRole('QuanLy', 'KeToan'),
+  requireRole('Sale', 'QuanLy', 'KeToan'),
   validateParams(uuidParamSchema),
   hopDongController.getById
 )

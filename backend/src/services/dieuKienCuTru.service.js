@@ -59,7 +59,7 @@ export const dieuKienCuTruService = {
     const customers = await client`
       SELECT id, ho_ten, gioi_tinh, so_cmnd_cccd
       FROM khach_hang
-      WHERE id IN (${customerIds})
+      WHERE id = ANY(${customerIds})
     `
 
     // Check if all requested customer IDs exist in the DB
@@ -102,7 +102,7 @@ export const dieuKienCuTruService = {
 
     return {
       tat_ca_dat,
-      chi_tiet
+      chi_tiet: chiTiet
     }
   }
 }
