@@ -3,6 +3,37 @@
 ========================================================================
 
 ------------------------------------------------------------------------
+Version: v0.9.3
+Date: 2026-07-18
+Description: UI/UX Toast Fix, khachHang Search API, Room Expansion Seed
+------------------------------------------------------------------------
+* Toast Notification Global Fix
+  - Fixed Toast component (Toast.jsx) to self-contain its own
+    position: fixed wrapper (toast-container), eliminating oversized
+    full-page orange/red banners appearing in all pages.
+  - Removed redundant toast-container wrapper from 5 pages:
+    DangNhap, TiepNhanYeuCau, LapPhieuDatCoc, DatLichXemPhong, LapHopDong.
+* UC08 LapHopDong Improvements
+  - Fixed "Thanh toán kỳ đầu" button to navigate to real UC10 page
+    (/thanh-toan-ky-dau/:hopDongId) instead of showing a placeholder toast.
+  - Removed "(UC10)" label from the button text.
+  - Compact UC09 residency check result: replaced large table with
+    inline pill/badge tags per member (green=PASS, red=FAIL + reason).
+* khachHang Search API (UC08 Member Search)
+  - New endpoint GET /api/v1/khach-hang?so_dien_thoai=... with LIKE search.
+  - New controller: khachHang.controller.js
+  - New router: khachHang.routes.js registered in index.js.
+  - New frontend API client: frontend/src/api/khachHang.api.js.
+  - LapHopDong.jsx updated to use the new endpoint (avoids crash from
+    incorrect nhu_cau_thue nested object lookup).
+* Room Expansion Seed Script
+  - Added seed_rooms.js to insert 30 additional empty rooms into an
+    existing database without resetting data.
+  - Covers 4 zones: Khu A (Don/Nam), Khu B (NguyenPhong/Nu),
+    Khu C (Ghep/Any), Khu D (Don cao cap/Any).
+  - Each room includes beds and default assets automatically.
+
+------------------------------------------------------------------------
 Version: v0.9.2
 Date: 2026-07-16
 Description: Align UC07 with Single-Actor Sale Flow & Security Fixes

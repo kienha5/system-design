@@ -11,6 +11,7 @@ import hoaDonRouter from './src/routes/hoaDon.routes.js'
 import bienBanBanGiaoRouter from './src/routes/bienBanBanGiao.routes.js'
 import bienBanTraPhongRouter from './src/routes/bienBanTraPhong.routes.js'
 import thongKeRouter from './src/routes/thongKe.routes.js'
+import khachHangRouter from './src/routes/khachHang.routes.js'
 
 import { requestTraceMiddleware } from './src/middleware/requestTrace.middleware.js'
 import { logDebug, wrapServiceInPlace } from './src/utils/logger.js'
@@ -59,6 +60,7 @@ app.use('/api/v1', hoaDonRouter)
 app.use('/api/v1', bienBanBanGiaoRouter)
 app.use('/api/v1', bienBanTraPhongRouter)
 app.use('/api/v1', thongKeRouter)
+app.use('/api/v1', khachHangRouter)
 
 // Middleware xử lý lỗi tập trung
 app.use((err, req, res, next) => {

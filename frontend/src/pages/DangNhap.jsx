@@ -231,13 +231,11 @@ export default function DangNhap() {
       </div>
 
       {toastMessage && (
-        <div className="toast-container">
-          <Toast 
-            message={toastMessage} 
-            type="danger" 
-            onClose={() => setToastMessage('')} 
-          />
-        </div>
+        <Toast 
+          message={toastMessage} 
+          type="danger" 
+          onClose={() => setToastMessage('')} 
+        />
       )}
     </div>
   )

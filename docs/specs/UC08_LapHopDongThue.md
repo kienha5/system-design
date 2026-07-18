@@ -118,3 +118,34 @@ Vai trò: QuanLy.
 - [ ] Viết `src/services/hopDong.service.js` hàm `create(input, quanLyId)` — gọi logic UC09 trực tiếp (không qua HTTP), toàn bộ trong 1 Prisma transaction.
 - [ ] Logic so sánh giá để phát hiện `GIA_THUE_DA_THAY_DOI`: `phong.gia_thue_mot_giuong` hiện tại so với `phieu_dat_coc.so_tien_coc / 2 / phieu_dat_coc.so_giuong_thue`.
 - [ ] FE: form 3 bước — (1) tìm phiếu cọc + hiển thị thông tin, (2) checklist điều kiện cư trú từng thành viên + hiển thị cảnh báo nếu có, (3) xem lại điều khoản HĐ + checkbox xác nhận khách đã ký.
+
+---
+
+## 8. Endpoint bổ sung hỗ trợ tìm kiếm thành viên nhóm
+
+Nhằm phục vụ tìm kiếm bạn cùng phòng (roommates) khi lập hợp đồng nhóm, hệ thống cung cấp endpoint tra cứu trực tiếp bảng khách hàng:
+
+*   **Endpoint:** `GET /api/v1/khach-hang`
+*   **Method:** `GET`
+*   **Vai trò truy cập:** `Sale`, `QuanLy`
+*   **Tham số truy vấn (Query parameters):**
+    *   `so_dien_thoai` (string, bắt buộc): Số điện thoại cần tìm kiếm (hỗ trợ tìm kiếm gần đúng, khớp tiền tố - prefix match).
+
+### Giao thức Response mẫu:
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "uuid-khach-hang",
+      "ho_ten": "Phạm Thị Dung",
+      "so_dien_thoai": "0934567890",
+      "email": "dung@gmail.com",
+      "gioi_tinh": "Nu",
+      "quoc_tich": "Viet Nam",
+      "so_cmnd_cccd": "123456789012"
+    }
+  ]
+}
+```

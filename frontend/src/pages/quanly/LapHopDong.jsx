@@ -6,6 +6,7 @@ import Toast from '../../components/shared/Toast'
 import axiosClient from '../../api/axiosClient'
 import { createHopDong, kiemTraDieuKien } from '../../api/hopDong.api'
 import { getPhieuDatCocById } from '../../api/phieuDatCoc.api'
+import { searchKhachHang } from '../../api/khachHang.api'
 import { FieldError } from '../../components/shared/FieldError'
 import { parseValidationErrors } from '../../utils/fieldNameMap'
 
@@ -134,9 +135,16 @@ export default function LapHopDong() {
     setSearchingMember(true)
     setToast(null)
     try {
-      const res = await axiosClient.get('/nhu-cau-thue', { params: { so_dien_thoai: searchPhone.trim() } })
-      if (res.success && res.data.length > 0) {
-        const customer = res.data[0].khach_hang
+      const res = await searchKhachHang(searchPhone.trim())
+      if (res.success && res.data && res.data.length > 0) {
+        const customer = res.data[0]
+        
+        // Defensive check for valid customer profile
+        if (!customer || !customer.id) {
+          showToast('Thông tin khách hàng không hợp lệ.', 'danger')
+          setSearchingMember(false)
+          return
+        }
         
         // Check if already in the members list
         if (members.find(m => m.khach_hang_id === customer.id)) {
@@ -164,11 +172,12 @@ export default function LapHopDong() {
         showToast(`Đã thêm thành viên ${customer.ho_ten} thành công!`)
         setCheckResult(null) // Reset condition check status
       } else {
-        showToast('Không tìm thấy thông tin khách hàng. Thành viên phải được đăng ký nhu cầu thuê trước.', 'danger')
+        showToast('Không tìm thấy khách hàng nào khớp với số điện thoại này.', 'danger')
       }
     } catch (err) {
       console.error(err)
-      showToast('Lỗi khi tìm kiếm thành viên.', 'danger')
+      const errorMsg = err.response?.data?.error?.message || err.message || 'Lỗi khi tìm kiếm thành viên.'
+      showToast(errorMsg, 'danger')
     } finally {
       setSearchingMember(false)
     }
@@ -559,66 +568,36 @@ export default function LapHopDong() {
                 </div>
               </div>
 
-              {/* Checklist details from UC09 */}
+              {/* Checklist details from UC09 — Compact inline */}
               {checkResult && (
-                <div className="card" style={{ borderLeft: `6px solid ${checkResult.tat_ca_dat ? 'var(--success)' : 'var(--warning)'}`, background: '#f8fafc' }}>
-                  <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', color: checkResult.tat_ca_dat ? 'var(--success)' : '#b45309', marginBottom: '16px' }}>
-                    {checkResult.tat_ca_dat ? '✅ ĐẠT YÊU CẦU ĐIỀU KIỆN' : '⚠️ PHÁT HIỆN THÀNH VIÊN KHÔNG ĐẠT ĐIỀU KIỆN'}
-                  </h3>
-                  
-                  <div style={{ fontSize: '14px', color: 'var(--gray-600)', marginBottom: '16px' }}>
-                    {checkResult.tat_ca_dat 
-                      ? 'Tất cả các thành viên đều khớp giới tính quy định của phòng và có đầy đủ thông tin CMND/CCCD.'
-                      : 'Có một số thành viên không đạt điều kiện. Đối với phòng nguyên nhóm, các thành viên không đạt sẽ bị LOẠI khỏi danh sách hợp đồng chính thức khi lập.'
-                    }
+                <div style={{ background: checkResult.tat_ca_dat ? '#f0fdf4' : '#fffbeb', border: `1px solid ${checkResult.tat_ca_dat ? '#86efac' : '#fcd34d'}`, borderRadius: '10px', padding: '12px 16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', fontWeight: 700, fontSize: '13px', color: checkResult.tat_ca_dat ? '#15803d' : '#92400e' }}>
+                    <span>{checkResult.tat_ca_dat ? '✅' : '⚠️'}</span>
+                    <span>{checkResult.tat_ca_dat ? 'Tất cả thành viên ĐẠT điều kiện cư trú' : 'Phát hiện thành viên KHÔNG ĐẠT điều kiện'}</span>
                   </div>
-
-                  <table className="room-table" style={{ background: 'white', borderRadius: '8px' }}>
-                    <thead>
-                      <tr>
-                        <th>Họ tên thành viên</th>
-                        <th>Giường</th>
-                        <th>Giấy tờ CCCD</th>
-                        <th>Giới tính khớp</th>
-                        <th>Kết quả</th>
-                        <th>Lý do loại</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {checkResult.chi_tiet.map((item) => {
-                        const mInfo = members.find(x => x.khach_hang_id === item.khach_hang_id)
-                        const bedName = roomBeds.find(b => b.id === item.giuong_id)?.ma_giuong || selectedSlip.ma_giuong || 'Chưa rõ'
-                        
-                        return (
-                          <tr key={item.khach_hang_id}>
-                            <td><strong>{item.ho_ten}</strong></td>
-                            <td>Giường {bedName}</td>
-                            <td>
-                              {mInfo?.so_cmnd_cccd ? (
-                                <span style={{ color: 'var(--success)' }}>✔ Có ({mInfo.so_cmnd_cccd})</span>
-                              ) : (
-                                <span style={{ color: 'var(--danger)', fontWeight: 'bold' }}>✘ Thiếu CCCD</span>
-                              )}
-                            </td>
-                            <td>
-                              <span style={{ color: 'var(--success)' }}>✔ Khớp ({mInfo?.gioi_tinh})</span>
-                            </td>
-                            <td>
-                              <span className={`badge ${item.dat ? 'status-pending' : 'status-maintain'}`} style={{ background: item.dat ? '#dcfce7' : '#fee2e2', color: item.dat ? '#15803d' : '#b91c1c' }}>
-                                {item.dat ? 'ĐẠT' : 'KHÔNG ĐẠT'}
-                              </span>
-                            </td>
-                            <td style={{ color: 'var(--danger)', fontSize: '13px' }}>
-                              {item.ly_do || 'Không có'}
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {checkResult.chi_tiet.map((item) => {
+                      const mInfo = members.find(x => x.khach_hang_id === item.khach_hang_id)
+                      const bedName = roomBeds.find(b => b.id === item.giuong_id)?.ma_giuong || selectedSlip.ma_giuong || '?'
+                      const reason = !mInfo?.so_cmnd_cccd ? 'Thiếu CCCD' : item.ly_do || ''
+                      return (
+                        <div key={item.khach_hang_id} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '5px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, background: item.dat ? '#dcfce7' : '#fee2e2', color: item.dat ? '#15803d' : '#b91c1c', border: `1px solid ${item.dat ? '#86efac' : '#fca5a5'}` }}>
+                          <span>{item.dat ? '✅' : '❌'}</span>
+                          <span>{item.ho_ten}</span>
+                          <span style={{ opacity: 0.7, fontSize: '11px' }}>· G.{bedName}</span>
+                          {!item.dat && reason && <span style={{ fontStyle: 'italic', fontSize: '11px' }}>({reason})</span>}
+                        </div>
+                      )
+                    })}
+                  </div>
+                  {!checkResult.tat_ca_dat && (
+                    <p style={{ margin: '10px 0 0', fontSize: '12px', color: '#92400e' }}>
+                      💡 Thành viên không đạt sẽ bị loại khỏi hợp đồng. Có thể tiếp tục nếu vẫn còn ít nhất 1 thành viên đạt.
+                    </p>
+                  )}
 
                   {/* Proceed buttons based on check status */}
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
                     {selectedSlip.loai_phong !== 'NguyenPhong' && !checkResult.tat_ca_dat ? (
                       <div style={{ color: 'var(--danger)', fontWeight: 'bold', fontSize: '14px', background: '#fee2e2', padding: '10px 16px', borderRadius: '8px' }}>
                         ❌ Khách hàng đơn lẻ không đạt điều kiện cư trú. Không thể lập hợp đồng thuê!
@@ -723,6 +702,13 @@ export default function LapHopDong() {
                     </div>
                   )}
 
+                  {selectedSlip && (Number(selectedSlip.phong_gia_thue) !== (Number(selectedSlip.so_tien_coc) / 2 / selectedSlip.so_giuong_thue)) && (
+                    <div style={{ padding: '12px', background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '8px', color: '#b45309', fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '8px' }}>
+                      <strong>⚠️ CẢNH BÁO: GIA_THUE_DA_THAY_DOI</strong>
+                      <span>Đơn giá thuê thực tế hiện tại ({formatVND(selectedSlip.phong_gia_thue)} /giường/tháng) khác với đơn giá tại thời điểm đặt cọc ({formatVND(Number(selectedSlip.so_tien_coc) / 2 / selectedSlip.so_giuong_thue)} /giường/tháng). Hợp đồng sẽ áp dụng đơn giá mới.</span>
+                    </div>
+                  )}
+
                   {/* Bed Transition Logic Details */}
                   <div style={{ fontSize: '13px', color: 'var(--gray-600)' }}>
                     <h4 style={{ color: 'var(--gray-800)', marginBottom: '6px' }}>🛌 Phân bổ và kích hoạt giường:</h4>
@@ -814,13 +800,10 @@ export default function LapHopDong() {
                 
                 <button 
                   className="btn btn-primary" 
-                  onClick={() => {
-                    // Redirect to UC10 mock or return
-                    showToast('Tính năng Thanh toán kỳ đầu (UC10) đang được chuẩn bị.', 'warning')
-                  }}
+                  onClick={() => navigate(`/thanh-toan-ky-dau/${createdContract.id}`)}
                   style={{ flex: 1 }}
                 >
-                  💳 Thanh toán kỳ đầu (UC10) ➔
+                  💳 Thanh toán kỳ đầu ➔
                 </button>
               </div>
             </div>

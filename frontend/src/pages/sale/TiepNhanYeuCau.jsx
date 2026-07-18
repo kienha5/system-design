@@ -146,13 +146,11 @@ export default function TiepNhanYeuCau() {
           </div>
 
           {toast && (
-            <div className="toast-container">
-              <Toast 
-                message={toast.message} 
-                type={toast.type} 
-                onClose={() => setToast(null)} 
-              />
-            </div>
+            <Toast 
+              message={toast.message} 
+              type={toast.type} 
+              onClose={() => setToast(null)} 
+            />
           )}
 
           {/* BƯỚC 1: NHẬP THÔNG TIN */}

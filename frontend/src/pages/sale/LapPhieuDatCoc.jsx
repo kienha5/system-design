@@ -224,13 +224,11 @@ export default function LapPhieuDatCoc() {
           </div>
 
           {toast && (
-            <div className="toast-container">
-              <Toast 
-                message={toast.message} 
-                type={toast.type} 
-                onClose={() => setToast(null)} 
-              />
-            </div>
+            <Toast 
+              message={toast.message} 
+              type={toast.type} 
+              onClose={() => setToast(null)} 
+            />
           )}
 
           {/* THANH TIẾN TRÌNH WIZARD */}

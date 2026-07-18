@@ -22,12 +22,14 @@ export default function Toast({ message, type = 'success', onClose }) {
   }
 
   return (
-    <div className={`toast ${getToastClass()}`}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <span>{getIcon()}</span>
-        <span>{message}</span>
+    <div className="toast-container">
+      <div className={`toast ${getToastClass()}`}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span>{getIcon()}</span>
+          <span>{message}</span>
+        </div>
+        <button className="toast-close" onClick={onClose}>&times;</button>
       </div>
-      <button className="toast-close" onClick={onClose}>&times;</button>
     </div>
   )
 }
