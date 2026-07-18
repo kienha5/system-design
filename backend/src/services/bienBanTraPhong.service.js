@@ -294,9 +294,13 @@ export const bienBanTraPhongService = {
         ty_le_hoan_coc = ${ty_le_hoan_coc},
         so_tien_hoan_khach = ${so_tien_hoan_khach},
         so_tien_khach_can_tra_them = ${so_tien_khach_can_tra_them},
+        tien_thue_con_no = ${tien_thue_con_no},
+        tien_dien_nuoc_dich_vu = ${tien_dien_nuoc_dich_vu},
+        chi_phi_sua_chua_boi_thuong = ${chi_phi_sua_chua_boi_thuong},
+        tien_phat_vi_pham = ${tien_phat_vi_pham},
         ke_toan_xac_nhan_id = ${keToanId}
       WHERE id = ${id}
-      RETURNING id, chi_phi_phat_sinh_tong, ty_le_hoan_coc, so_tien_hoan_khach, so_tien_khach_can_tra_them, trang_thai
+      RETURNING id, chi_phi_phat_sinh_tong, ty_le_hoan_coc, so_tien_hoan_khach, so_tien_khach_can_tra_them, trang_thai, tien_thue_con_no, tien_dien_nuoc_dich_vu, chi_phi_sua_chua_boi_thuong, tien_phat_vi_pham
     `
 
     return updated
@@ -388,6 +392,10 @@ export const bienBanTraPhongService = {
     if (bbt.ty_le_hoan_coc !== null) bbt.ty_le_hoan_coc = Number(bbt.ty_le_hoan_coc)
     bbt.so_tien_coc_goc = Number(bbt.so_tien_coc_goc)
     bbt.gia_thue_mot_giuong = Number(bbt.gia_thue_mot_giuong)
+    bbt.tien_thue_con_no = Number(bbt.tien_thue_con_no || 0)
+    bbt.tien_dien_nuoc_dich_vu = Number(bbt.tien_dien_nuoc_dich_vu || 0)
+    bbt.chi_phi_sua_chua_boi_thuong = Number(bbt.chi_phi_sua_chua_boi_thuong || 0)
+    bbt.tien_phat_vi_pham = Number(bbt.tien_phat_vi_pham || 0)
 
     // 2. Fetch baseline handover report if exists for same contract
     const [bbg] = await sql`

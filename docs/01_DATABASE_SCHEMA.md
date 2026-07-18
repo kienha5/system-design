@@ -248,6 +248,10 @@ CREATE TYPE tinh_trang_tai_san AS ENUM ('Tot', 'DungDuoc', 'CanChuY', 'HuHong', 
 | ngay_dang_ky_tra | timestamptz | NOT NULL — thời điểm Sale ghi nhận yêu cầu (UC12) |
 | ngay_tra_thuc_te | timestamptz | NULL — điền khi Quản lý hoàn tất đối soát (UC13) |
 | danh_sach_doi_soat | jsonb | NULL cho đến UC13 — so sánh với bien_ban_ban_giao.danh_sach_tai_san. Format: `[{"ten": "Giường", "tinh_trang": "HuHong", "ghi_chu": "...", "chi_phi_boi_thuong": 500000}]` |
+| tien_thue_con_no | numeric(12,2) | NOT NULL, default 0 — tiền thuê còn nợ khi trả phòng |
+| tien_dien_nuoc_dich_vu | numeric(12,2) | NOT NULL, default 0 — tiền điện nước dịch vụ phát sinh |
+| chi_phi_sua_chua_boi_thuong | numeric(12,2) | NOT NULL, default 0 — chi phí sửa chữa, bồi thường tài sản |
+| tien_phat_vi_pham | numeric(12,2) | NOT NULL, default 0 — tiền phạt vi phạm nội quy |
 | chi_phi_phat_sinh_tong | numeric(12,2) | NOT NULL, default 0 — tổng: tiền nợ + điện nước + sửa chữa + phạt (UC14) |
 | ty_le_hoan_coc | numeric(5,2) | NULL cho đến UC14 — % tiền cọc được hoàn theo tình trạng HĐ |
 | so_tien_hoan_khach | numeric(12,2) | NULL cho đến UC14 — số tiền thực tế trả lại cho khách (>= 0) |

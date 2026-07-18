@@ -8,7 +8,7 @@ export const searchPhong = (filters) => {
       params[key] = filters[key]
     }
   })
-  
+
   // Mặc định phân trang nếu chưa truyền
   if (!params.page) params.page = 1
   if (!params.pageSize) params.pageSize = 10
@@ -17,7 +17,22 @@ export const searchPhong = (filters) => {
 }
 
 export const getGiuongTrong = (phongId) => {
-  return axiosClient.get('/giuong', { 
-    params: { phong_id: phongId, trang_thai: 'Trong' } 
+  return axiosClient.get('/giuong', {
+    params: { phong_id: phongId, trang_thai: 'Trong' }
   })
 }
+
+export const getAllGiuong = (phongId) => {
+  return axiosClient.get('/giuong', {
+    params: { phong_id: phongId }
+  })
+}
+
+export const updateRoomStatus = (phongId, data) => {
+  return axiosClient.patch(`/phong/${phongId}/trang-thai`, data)
+}
+
+export const updateBedStatus = (giuongId, data) => {
+  return axiosClient.patch(`/giuong/${giuongId}/trang-thai`, data)
+}
+

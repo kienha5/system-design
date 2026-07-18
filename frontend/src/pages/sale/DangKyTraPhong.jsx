@@ -70,16 +70,22 @@ export default function DangKyTraPhong() {
       if (res.success) {
         // Fetch full contract details and attach checkout info from search
         const fullContract = res.data
+        const bbtId = fullContract.bien_ban_tra_phong_id || contractItem.bien_ban_tra_phong_id
+        const bbtStatus = fullContract.bien_ban_tra_phong_trang_thai || contractItem.bien_ban_tra_phong_trang_thai
+        const expectedDate = fullContract.ngay_tra_phong_du_kien || contractItem.ngay_tra_phong_du_kien
+
         setSelectedContract({
           ...fullContract,
-          bien_ban_tra_phong_id: contractItem.bien_ban_tra_phong_id,
-          bien_ban_tra_phong_trang_thai: contractItem.bien_ban_tra_phong_trang_thai
+          bien_ban_tra_phong_id: bbtId,
+          bien_ban_tra_phong_trang_thai: bbtStatus,
+          ngay_tra_phong_du_kien: expectedDate
         })
         
         // Default checkout dates
         const todayStr = new Date().toISOString().split('T')[0]
-        setNgayTraPhongDuKien(todayStr)
-        setNgayHenMoi(todayStr)
+        const formattedDate = expectedDate ? new Date(expectedDate).toISOString().split('T')[0] : todayStr
+        setNgayTraPhongDuKien(formattedDate)
+        setNgayHenMoi(formattedDate)
         
         setSearchResults([])
         setSearchQuery('')

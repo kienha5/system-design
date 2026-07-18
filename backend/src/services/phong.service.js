@@ -37,7 +37,7 @@ export const phongService = {
     if (gioi_tinh_quy_dinh) {
       conditions.push(sql`p.gioi_tinh_quy_dinh = ${gioi_tinh_quy_dinh}`)
     }
-    
+
     // Default to 'Trong' if no trang_thai filter is provided
     if (trang_thai) {
       conditions.push(sql`p.trang_thai = ${trang_thai}`)
@@ -266,7 +266,7 @@ export const phongService = {
     const validBedTransitions = {
       'Trong': ['ChoDatCoc'],
       'ChoDatCoc': ['Trong', 'DaDatCoc'],
-      'DaDatCoc': ['DangThue'],
+      'DaDatCoc': ['DangThue', 'Trong'],
       'DangThue': ['Trong']
     }
 

@@ -232,6 +232,10 @@ CREATE TABLE bien_ban_tra_phong (
     ngay_dang_ky_tra TIMESTAMPTZ NOT NULL,
     ngay_tra_thuc_te TIMESTAMPTZ,
     danh_sach_doi_soat JSONB, -- Định dạng: [{"ten": "Giường", "tinh_trang": "HuHong", "ghi_chu": "...", "chi_phi_boi_thuong": 500000}]
+    tien_thue_con_no NUMERIC(12,2) NOT NULL DEFAULT 0,
+    tien_dien_nuoc_dich_vu NUMERIC(12,2) NOT NULL DEFAULT 0,
+    chi_phi_sua_chua_boi_thuong NUMERIC(12,2) NOT NULL DEFAULT 0,
+    tien_phat_vi_pham NUMERIC(12,2) NOT NULL DEFAULT 0,
     chi_phi_phat_sinh_tong NUMERIC(12,2) NOT NULL DEFAULT 0,
     ty_le_hoan_coc NUMERIC(5,2),
     so_tien_hoan_khach NUMERIC(12,2),

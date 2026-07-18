@@ -221,9 +221,13 @@ export const hopDongService = {
         hd.quan_ly_lap_id,
         p.ma_phong,
         p.loai_phong,
-        p.khu_vuc
+        p.khu_vuc,
+        bbt.id AS bien_ban_tra_phong_id,
+        bbt.trang_thai AS bien_ban_tra_phong_trang_thai,
+        bbt.ngay_tra_phong_du_kien
       FROM hop_dong hd
       JOIN phong p ON hd.phong_id = p.id
+      LEFT JOIN bien_ban_tra_phong bbt ON hd.id = bbt.hop_dong_id
       WHERE hd.id = ${id}
     `
 
@@ -269,7 +273,8 @@ export const hopDongService = {
         kh.ho_ten AS ten_khach_hang,
         kh.so_dien_thoai AS sdt_khach_hang,
         (SELECT id FROM bien_ban_tra_phong WHERE hop_dong_id = hd.id) AS bien_ban_tra_phong_id,
-        (SELECT trang_thai FROM bien_ban_tra_phong WHERE hop_dong_id = hd.id) AS bien_ban_tra_phong_trang_thai
+        (SELECT trang_thai FROM bien_ban_tra_phong WHERE hop_dong_id = hd.id) AS bien_ban_tra_phong_trang_thai,
+        (SELECT ngay_tra_phong_du_kien FROM bien_ban_tra_phong WHERE hop_dong_id = hd.id) AS ngay_tra_phong_du_kien
       FROM hop_dong hd
       JOIN phieu_dat_coc pdc ON hd.phieu_dat_coc_id = pdc.id
       JOIN khach_hang kh ON pdc.khach_hang_id = kh.id

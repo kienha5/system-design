@@ -118,7 +118,11 @@ export default function TraPhong() {
         setBienBan(data)
 
         // 1. Initialize Step 1 (Audit)
-        setNgayTraThucTe(data.ngay_tra_thuc_te ? new Date(data.ngay_tra_thuc_te).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16))
+        setNgayTraThucTe(data.ngay_tra_thuc_te
+          ? new Date(data.ngay_tra_thuc_te).toISOString().slice(0, 16)
+          : (data.ngay_tra_phong_du_kien
+            ? new Date(data.ngay_tra_phong_du_kien).toISOString().slice(0, 16)
+            : new Date().toISOString().slice(0, 16)))
 
         if (data.danh_sach_doi_soat && data.danh_sach_doi_soat.length > 0) {
           setAuditList(data.danh_sach_doi_soat)
@@ -376,7 +380,7 @@ export default function TraPhong() {
       }
     } catch (err) {
       console.error(err)
-      showToast(err.response?.data?.error?.message || 'Lỗi thanh lý hợp đồng.', 'danger')
+      showToast(err.message || 'Lỗi thanh lý hợp đồng.', 'danger')
     } finally {
       setActionLoading(false)
     }
@@ -645,11 +649,11 @@ export default function TraPhong() {
           </div>
 
           {/* Quick info banner */}
-          <div className="card" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', fontSize: '14px' }}>
+          <div className="card" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', fontSize: '14px' }}>
             <div><strong>Hợp đồng:</strong> {bienBan.ma_hop_dong}</div>
             <div><strong>Khách đại diện:</strong> {bienBan.ten_khach_hang} ({bienBan.sdt_khach_hang})</div>
             <div><strong>Phòng:</strong> {bienBan.ma_phong}</div>
-            <div><strong>Đăng ký trả:</strong> {formatDate(bienBan.ngay_dang_ky_tra)}</div>
+            <div><strong>Ngày đăng ký trả:</strong> {formatDate(bienBan.ngay_tra_phong_du_kien)}</div>
             <div><strong>Trạng thái hiện tại:</strong> <span className="badge badge-info">{getStatusText(bienBan.trang_thai)}</span></div>
           </div>
 

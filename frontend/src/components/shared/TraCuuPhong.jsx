@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { searchPhong, getGiuongTrong } from '../../api/phong.api'
+import { searchPhong, getGiuongTrong, getAllGiuong, updateRoomStatus, updateBedStatus } from '../../api/phong.api'
 import { useAuth } from '../../context/AuthContext'
 
 export default function TraCuuPhong({
@@ -10,12 +10,14 @@ export default function TraCuuPhong({
   selectedGiuongId
 }) {
   const { user } = useAuth()
+  const isQuanLy = user?.vai_tro?.toLowerCase() === 'quanly' || user?.vai_tro?.toLowerCase() === 'quản lý' || user?.vai_tro?.toLowerCase() === 'quan_ly'
+
   // Bộ lọc tìm kiếm
   const [filters, setFilters] = useState({
     khu_vuc: '',
     loai_phong: '',
     gia_den: '',
-    trang_thai: mode === 'select' ? 'Trong' : '' // Nếu chọn phòng thì mặc định chỉ tìm phòng 'Trong'
+    trang_thai: mode === 'select' ? 'Trong' : ''
   })
 
   const [rooms, setRooms] = useState([])
@@ -25,11 +27,27 @@ export default function TraCuuPhong({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // State giường của phòng đang được chọn (chỉ dùng trong mode 'select')
+  // State giường của phòng đang được chọn
   const [selectedRoom, setSelectedRoom] = useState(null)
   const [beds, setBeds] = useState([])
   const [loadingBeds, setLoadingBeds] = useState(false)
-  const [activeGiuongId, setActiveGiuongId] = useState(selectedGiuongId || null)
+  const [activeGiuongId, setActiveGiuongId] = useState(null)
+
+  // Room Status Modal State
+  const [showRoomModal, setShowRoomModal] = useState(false)
+  const [targetRoom, setTargetRoom] = useState(null)
+  const [roomNewStatus, setRoomNewStatus] = useState('')
+  const [roomReason, setRoomReason] = useState('')
+  const [roomWarning, setRoomWarning] = useState(null)
+  const [submittingRoom, setSubmittingRoom] = useState(false)
+
+  // Bed Status Modal State
+  const [showBedModal, setShowBedModal] = useState(false)
+  const [targetBed, setTargetBed] = useState(null)
+  const [bedNewStatus, setBedNewStatus] = useState('')
+  const [bedReason, setBedReason] = useState('')
+  const [bedWarning, setBedWarning] = useState(null)
+  const [submittingBed, setSubmittingBed] = useState(false)
 
   // Fetch danh sách phòng
   const fetchRooms = async () => {
@@ -58,7 +76,6 @@ export default function TraCuuPhong({
 
   useEffect(() => {
     fetchRooms()
-    // Reset lựa chọn phòng/giường khi thay đổi bộ lọc
     if (mode === 'select') {
       setSelectedRoom(null)
       setBeds([])
@@ -67,26 +84,26 @@ export default function TraCuuPhong({
 
   // Lấy danh sách giường khi chọn phòng
   const handleSelectRoom = async (room) => {
-    if (mode !== 'select') return
-
     setSelectedRoom(room)
-    if (onSelectPhong) {
+    if (mode === 'select' && onSelectPhong) {
       onSelectPhong(room)
     }
 
     // Nếu phòng thuê nguyên phòng (NguyenPhong), không cần chọn giường lẻ
     if (room.loai_phong === 'NguyenPhong') {
       setBeds([])
-      if (onSelectGiuong) {
-        onSelectGiuong(null, room) // Trả về giuong null cho nguyên phòng
+      if (mode === 'select' && onSelectGiuong) {
+        onSelectGiuong(null, room)
       }
       return
     }
 
-    // Load giường trống của phòng
+    // Load giường
     setLoadingBeds(true)
     try {
-      const res = await getGiuongTrong(room.id)
+      const res = mode === 'select' 
+        ? await getGiuongTrong(room.id) 
+        : await getAllGiuong(room.id)
       if (res.success) {
         setBeds(res.data)
       } else {
@@ -96,6 +113,102 @@ export default function TraCuuPhong({
       alert('Lỗi tải danh sách giường.')
     } finally {
       setLoadingBeds(false)
+    }
+  }
+
+  const handleOpenRoomStatusModal = (room) => {
+    setTargetRoom(room)
+    setRoomNewStatus(room.trang_thai)
+    setRoomReason('')
+    setRoomWarning(null)
+    setShowRoomModal(true)
+  }
+
+  const handleSaveRoomStatus = async (override = false) => {
+    if (!roomNewStatus) return
+    
+    // Check validation for reason
+    const needsReason = roomNewStatus === 'BaoTri' || (targetRoom.trang_thai === 'DangThue' && roomNewStatus === 'Trong')
+    if (needsReason && !roomReason.trim()) {
+      alert('Vui lòng nhập lý do chuyển trạng thái này.')
+      return
+    }
+
+    setSubmittingRoom(true)
+    try {
+      const res = await updateRoomStatus(targetRoom.id, {
+        trang_thai_moi: roomNewStatus,
+        ly_do: roomReason
+      })
+
+      if (res.success) {
+        if (res.data.warning === 'HOP_DONG_DANG_HIEU_LUC' && !override) {
+          setRoomWarning('Cảnh báo: Phòng đang có hợp đồng hiệu lực! Bạn có chắc chắn muốn bỏ qua cảnh báo này và tiếp tục đổi trạng thái không?')
+          setSubmittingRoom(false)
+          return
+        }
+        
+        alert('Cập nhật trạng thái phòng thành công!')
+        setShowRoomModal(false)
+        fetchRooms()
+        // Cập nhật lại selectedRoom nếu đang xem phòng này
+        if (selectedRoom?.id === targetRoom.id) {
+          setSelectedRoom({ ...selectedRoom, trang_thai: roomNewStatus })
+        }
+      } else {
+        alert(res.error?.message || 'Có lỗi xảy ra khi cập nhật.')
+      }
+    } catch (err) {
+      alert(err.response?.data?.error?.message || err.message || 'Lỗi kết nối.')
+    } finally {
+      setSubmittingRoom(false)
+    }
+  }
+
+  const handleOpenBedStatusModal = (bed) => {
+    setTargetBed(bed)
+    setBedNewStatus(bed.trang_thai)
+    setBedReason('')
+    setBedWarning(null)
+    setShowBedModal(true)
+  }
+
+  const handleSaveBedStatus = async (override = false) => {
+    if (!bedNewStatus) return
+
+    const needsReason = targetBed.trang_thai === 'DangThue' && bedNewStatus === 'Trong'
+    if (needsReason && !bedReason.trim()) {
+      alert('Vui lòng nhập lý do chuyển trạng thái này.')
+      return
+    }
+
+    setSubmittingBed(true)
+    try {
+      const res = await updateBedStatus(targetBed.id, {
+        trang_thai_moi: bedNewStatus,
+        ly_do: bedReason
+      })
+
+      if (res.success) {
+        if (res.data.warning === 'HOP_DONG_DANG_HIEU_LUC' && !override) {
+          setBedWarning('Cảnh báo: Giường này đang có khách thuê với hợp đồng hiệu lực! Bạn có chắc chắn muốn tiếp tục đổi trạng thái không?')
+          setSubmittingBed(false)
+          return
+        }
+
+        alert('Cập nhật trạng thái giường thành công!')
+        setShowBedModal(false)
+        if (selectedRoom) {
+          handleSelectRoom(selectedRoom)
+        }
+        fetchRooms()
+      } else {
+        alert(res.error?.message || 'Có lỗi xảy ra khi cập nhật.')
+      }
+    } catch (err) {
+      alert(err.response?.data?.error?.message || err.message || 'Lỗi kết nối.')
+    } finally {
+      setSubmittingBed(false)
     }
   }
 
