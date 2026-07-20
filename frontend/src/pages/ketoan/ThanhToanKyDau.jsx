@@ -7,10 +7,15 @@ import { getHopDong, searchHopDong } from '../../api/hopDong.api'
 import { taoHoaDon, xacNhanThanhToan } from '../../api/hoaDon.api'
 import { FieldError } from '../../components/shared/FieldError'
 import { parseValidationErrors } from '../../utils/fieldNameMap'
+import { useAuth } from '../../context/AuthContext'
 
 export default function ThanhToanKyDau() {
   const { hopDongId } = useParams()
   const navigate = useNavigate()
+  const { user } = useAuth()
+
+  const isQuanLy = user?.vai_tro === 'QuanLy'
+  const dashboardPath = isQuanLy ? '/dashboard-quan-ly' : '/dashboard-ke-toan'
 
   // Wizard steps: 1: Lập hóa đơn, 2: Xác nhận thu tiền, 3: Thành công
   const [activeStep, setActiveStep] = useState(1)
@@ -479,13 +484,24 @@ export default function ThanhToanKyDau() {
                     <div><strong>Thời gian xác nhận:</strong> {new Date().toLocaleString('vi-VN')}</div>
                   </div>
 
-                  <button 
-                    className="btn btn-primary" 
-                    onClick={() => navigate('/dashboard-ke-toan')}
-                    style={{ width: '100%' }}
-                  >
-                    🏠 Về Dashboard Kế toán
-                  </button>
+                  <div style={{ display: 'flex', gap: '12px', width: '100%', flexDirection: 'column' }}>
+                    {isQuanLy && contract && (
+                      <button 
+                        className="btn btn-primary" 
+                        onClick={() => navigate(`/ban-giao-phong/${contract.id}`)}
+                        style={{ width: '100%', background: 'var(--success)', borderColor: 'var(--success)' }}
+                      >
+                        🏠 Tiến hành bàn giao phòng (UC11) ➔
+                      </button>
+                    )}
+                    <button 
+                      className="btn btn-outline" 
+                      onClick={() => navigate(dashboardPath)}
+                      style={{ width: '100%' }}
+                    >
+                      ↩ Về Dashboard {isQuanLy ? 'Quản lý' : 'Kế toán'}
+                    </button>
+                  </div>
                 </div>
               )}
 

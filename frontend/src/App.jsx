@@ -88,7 +88,7 @@ function AppRoutes() {
         <ProtectedRoute allowedRoles={['KeToan', 'kế toán', 'Kế toán']}><DashboardKeToan /></ProtectedRoute>
       } />
       <Route path="/thanh-toan-ky-dau/:hopDongId" element={
-        <ProtectedRoute allowedRoles={['KeToan', 'kế toán', 'Kế toán']}><ThanhToanKyDau /></ProtectedRoute>
+        <ProtectedRoute allowedRoles={['KeToan', 'kế toán', 'Kế toán', 'QuanLy', 'quản lý', 'Quản lý']}><ThanhToanKyDau /></ProtectedRoute>
       } />
       <Route path="/tra-phong/:bienBanId" element={
         <ProtectedRoute allowedRoles={['QuanLy', 'quản lý', 'Quản lý', 'KeToan', 'kế toán', 'Kế toán']}><TraPhong /></ProtectedRoute>

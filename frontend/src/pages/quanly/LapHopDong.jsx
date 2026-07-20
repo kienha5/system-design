@@ -51,9 +51,8 @@ export default function LapHopDong() {
     try {
       const res = await axiosClient.get('/phieu-dat-coc', { params: { trang_thai: 'DaThanhToan' } })
       if (res.success) {
-        // Filter out slips that already have contracts if the backend hasn't filtered them
-        // In our backend, creating a contract prevents reuse, but let's query approved ones.
-        setApprovedSlips(res.data)
+        // Loại bỏ phiếu đã được lập hợp đồng (da_co_hop_dong = true)
+        setApprovedSlips(res.data.filter(slip => !slip.da_co_hop_dong))
       }
     } catch (err) {
       console.error(err)
@@ -360,7 +359,7 @@ export default function LapHopDong() {
                           >
                             <td><strong>{slip.ma_phieu_coc}</strong></td>
                             <td>{slip.khach_hang_ho_ten} ({slip.khach_hang_so_dien_thoai})</td>
-                            <td>Phòng {slip.ma_phong} {slip.giuong_id ? `(Giường ${slip.ma_giuong})` : "(Nguyên phòng)"}</td>
+                            <td>Phòng {slip.ma_phong} {slip.giuong_id ? `(Giường ${slip.ma_giuong || 'lẻ'})` : "(Nguyên phòng)"}</td>
                             <td>{slip.so_giuong_thue}</td>
                             <td><span style={{ color: 'var(--success)', fontWeight: 600 }}>{formatVND(slip.so_tien_coc)}</span></td>
                             <td>{new Date(slip.ngay_dat_coc).toLocaleDateString('vi-VN')}</td>
@@ -399,7 +398,7 @@ export default function LapHopDong() {
                   <div>
                     <div style={{ fontSize: '13px', color: 'var(--gray-600)' }}>Phiếu đặt cọc đang chọn:</div>
                     <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--primary)', marginTop: '2px' }}>
-                      {selectedSlip.ma_phieu_coc} — Phòng {selectedSlip.ma_phong} {selectedSlip.giuong_id ? `(Giường ${selectedSlip.ma_giuong})` : "(Nguyên phòng)"}
+                      {selectedSlip.ma_phieu_coc} — Phòng {selectedSlip.ma_phong} {selectedSlip.giuong_id ? `(Giường ${selectedSlip.ma_giuong || 'lẻ'})` : "(Nguyên phòng)"}
                     </div>
                     <div style={{ fontSize: '13px', color: 'var(--gray-500)', marginTop: '4px' }}>
                       Khách đại diện: <strong>{selectedSlip.khach_hang_ho_ten}</strong> | Tiền cọc giữ chỗ: <strong style={{ color: 'var(--success)' }}>{formatVND(selectedSlip.so_tien_coc)}</strong>
@@ -791,19 +790,11 @@ export default function LapHopDong() {
 
               <div style={{ display: 'flex', gap: '16px', width: '100%' }}>
                 <button 
-                  className="btn btn-outline" 
+                  className="btn btn-primary" 
                   onClick={() => navigate('/dashboard-quan-ly')}
                   style={{ flex: 1 }}
                 >
                   🏠 Về Dashboard Quản lý
-                </button>
-                
-                <button 
-                  className="btn btn-primary" 
-                  onClick={() => navigate(`/thanh-toan-ky-dau/${createdContract.id}`)}
-                  style={{ flex: 1 }}
-                >
-                  💳 Thanh toán kỳ đầu ➔
                 </button>
               </div>
             </div>

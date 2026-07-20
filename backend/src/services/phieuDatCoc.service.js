@@ -335,10 +335,14 @@ export const phieuDatCocService = {
         kh.ho_ten AS khach_hang_ho_ten,
         kh.so_dien_thoai AS khach_hang_so_dien_thoai,
         p.ma_phong,
-        p.loai_phong
+        p.loai_phong,
+        g.ma_giuong,
+        CASE WHEN hd.id IS NOT NULL THEN true ELSE false END AS da_co_hop_dong
       FROM phieu_dat_coc pdc
       JOIN khach_hang kh ON pdc.khach_hang_id = kh.id
       JOIN phong p ON pdc.phong_id = p.id
+      LEFT JOIN giuong g ON pdc.giuong_id = g.id
+      LEFT JOIN hop_dong hd ON hd.phieu_dat_coc_id = pdc.id
       ${whereClause}
       ORDER BY pdc.ngay_dat_coc DESC
     `
